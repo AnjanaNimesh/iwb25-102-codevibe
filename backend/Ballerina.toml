@@ -4,5 +4,10 @@ name = "backend"
 version = "0.1.0"
 distribution = "2201.12.7"
 
+[[dependency]]
+org = "ballerinax"
+name = "mysql"
+version = "1.16.1"
+
 [build-options]
 observabilityIncluded = true
