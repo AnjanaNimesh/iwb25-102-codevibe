@@ -13,7 +13,6 @@ name = "backend"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "test"},
 	{org = "ballerinai", name = "observe"},
 	{org = "ballerinax", name = "mysql"},
@@ -21,6 +20,7 @@ dependencies = [
 ]
 modules = [
 	{org = "asus", packageName = "backend", moduleName = "backend"},
+	{org = "asus", packageName = "backend", moduleName = "backend.database"},
 	{org = "asus", packageName = "backend", moduleName = "backend.dependency"}
 ]
 
@@ -99,20 +99,6 @@ name = "lang.value"
 version = "0.0.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
-]
-
-[[package]]
-org = "ballerina"
-name = "log"
-version = "2.12.0"
-dependencies = [
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.value"},
-	{org = "ballerina", name = "observe"}
-]
-modules = [
-	{org = "ballerina", packageName = "log", moduleName = "log"}
 ]
 
 [[package]]
