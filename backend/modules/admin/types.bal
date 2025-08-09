@@ -8,15 +8,6 @@ public type donorDetails record {|
     string phone_number;
 |};
 
-public type hospitalUsers record{|
-    string hospital_email;
-    string hospital_name;
-    string hospital_type;
-    string district_name;
-    string hospital_address;
-    string contact_number;
-|};
-
 public type addHospitalData record {|
     string hospital_name;
     string hospital_type;
@@ -36,4 +27,19 @@ public type viewHospitalData record {|
 
 public type deleteHospital record {|
     int hospital_id;
+|};
+
+public type addHospitalUsers record{|
+    string hospital_email;
+    int hospital_id;
+    string password_hash;
+|};
+
+public type viewHospitalUsers record {|
+    string hospital_email;
+    string hospital_name;
+    string hospital_type;
+    string hospital_address;
+    string contact_number;
+    string district_name;
 |};
