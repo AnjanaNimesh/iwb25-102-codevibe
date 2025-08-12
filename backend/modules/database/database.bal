@@ -1,3 +1,4 @@
+import ballerina/http;
 import ballerinax/mysql;
 import ballerina/io;
 
@@ -7,6 +8,7 @@ configurable string HOST = ?;
 configurable int PORT = ?;
 configurable string DATABASE = ?;
 
+
 public final mysql:Client dbClient = check new (
     host = HOST,
     user = USER,
@@ -15,6 +17,7 @@ public final mysql:Client dbClient = check new (
     database = DATABASE
 );
 
+public listener http:Listener dashboardListener = new (9092);
 
 public function connectDatabase() returns error? {
     io:println("Database connected successfully...");
