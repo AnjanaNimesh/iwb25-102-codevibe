@@ -15,6 +15,7 @@ CREATE TABLE donor (
     district_id INT NOT NULL,
     blood_group VARCHAR(5) NOT NULL CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
     last_donation_date DATE,
+    status VARCHAR DEFAULT 'active',
     FOREIGN KEY (district_id) REFERENCES district(district_id)
 );
 
@@ -26,6 +27,7 @@ CREATE TABLE hospital (
     hospital_address VARCHAR(100),
     contact_number VARCHAR(15),
     district_id INT NOT NULL,
+    status VARCHAR DEFAULT 'active',
     FOREIGN KEY (district_id) REFERENCES district(district_id)
 );
 
@@ -43,6 +45,8 @@ CREATE TABLE blood_group (
     hospital_id INT NOT NULL,
     blood_name VARCHAR(5) NOT NULL CHECK (blood_name IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
     quantity INT DEFAULT 0 CHECK (quantity >= 0),
+    status_indicator VARCHAR DEFAULT 'Good',
+    last_modified DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (hospital_id, blood_name),
     FOREIGN KEY (hospital_id) REFERENCES hospital(hospital_id)
 );
