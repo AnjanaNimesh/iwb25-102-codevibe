@@ -36,6 +36,7 @@ CREATE TABLE hospital_user (
     hospital_email VARCHAR(50) PRIMARY KEY,
     password_hash VARCHAR(255) NOT NULL,
     hospital_id INT NOT NULL UNIQUE,
+    status ENUM DEFAULT 'active',
     FOREIGN KEY (hospital_id) REFERENCES hospital(hospital_id)
 );
 

@@ -6,6 +6,7 @@ public type donorDetails record {|
     string district_name;
     string email;
     string phone_number;
+    string status;
 |};
 
 public type addHospitalData record {|
@@ -13,7 +14,7 @@ public type addHospitalData record {|
     string hospital_type;
     string hospital_address;
     string contact_number;
-    int district_id;
+    string district_name;
 |};
 
 public type viewHospitalData record {|
@@ -22,7 +23,8 @@ public type viewHospitalData record {|
     string hospital_type;
     string hospital_address;
     string contact_number;
-    int district_id;
+    string district_name;
+    string status;
 |};
 
 public type deleteHospital record {|
@@ -31,7 +33,7 @@ public type deleteHospital record {|
 
 public type addHospitalUsers record{|
     string hospital_email;
-    int hospital_id;
+    string hospital_name;
     string password_hash;
 |};
 
@@ -41,5 +43,44 @@ public type viewHospitalUsers record {|
     string hospital_type;
     string hospital_address;
     string contact_number;
+    string status;
     string district_name;
+|};
+
+public type HospitalWithDistrictName record {|
+    string hospital_name;
+    string hospital_type;
+    string hospital_address;
+    string contact_number;
+    string district_name;
+|};
+
+public type District record {|
+    int district_id;
+    string district_name;
+|};
+
+public type ViewHospitalBloodStock record {|
+    string hospital_name;
+    string district_name;
+    string blood_name;
+    int quantity;
+    string status_indicator;
+    string last_modified;  
+|};
+
+public type viewHospitalName record {|
+    int hospital_id;
+    string hospital_name;
+|};
+
+public type bloodQuantity record {|
+    string blood_name;
+    int quantity;
+|};
+
+public type updateHospitalUsers record {|
+    int hospital_id;
+    string hospital_email;
+    string hospital_name;
 |};
