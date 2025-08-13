@@ -27,6 +27,7 @@ function App() {
 
         {/* Admin layout & pages */}
         <Route path="/admin" element={<Admin />}>
+          <Route path="" element={<AdminDashboard/>}/>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="addHospital" element={<AddHospitals/>} />
           <Route path="addHospitalUsers" element={<AddHospitalUsers/>} />
