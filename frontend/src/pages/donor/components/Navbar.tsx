@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { MenuIcon, X as CloseIcon, UserIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 export const Navbar = () => {
@@ -15,7 +15,7 @@ export const Navbar = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <Link
-            to="/"
+            to="#home"
             className="text-gray-800 hover:text-[#B02629] transition-colors"
           >
             Home
@@ -46,13 +46,13 @@ export const Navbar = () => {
           </a>
           <button
             className="bg-[#B02629] text-white px-6 py-2 rounded-full hover:bg-[#9a1f22] transition-colors"
-            onClick={() => navigate("/blood-requests")}
+            onClick={() => navigate("/donor/bloodRequestsPage")}
           >
             Donate Now
           </button>
           <button
             className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition-colors"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/donor/profile")}
             aria-label="Profile"
           >
             <UserIcon size={20} className="text-gray-800" />
@@ -71,7 +71,7 @@ export const Navbar = () => {
         <div className="md:hidden bg-white p-4 border-t">
           <nav className="flex flex-col space-y-4">
             <Link
-              to="/"
+              to="#home"
               className="text-gray-800 hover:text-[#B02629] transition-colors py-2"
               onClick={() => setIsMenuOpen(false)}
             >

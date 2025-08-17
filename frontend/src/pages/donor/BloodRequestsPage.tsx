@@ -389,7 +389,7 @@ export const BloodRequestsPage: React.FC = () => {
                 </div>
                 <button
                   className="w-full bg-[#B02629] hover:bg-[#9a1f22] text-white py-2 rounded-full transition-colors"
-                  onClick={() => navigate(`/eligibility/${request.request_id}`)}
+                  onClick={() => navigate(`eligibility/${request.request_id}`)}
                 >
                   Donate Now
                 </button>

@@ -18,7 +18,9 @@ import Donors from "./pages/hospital/Donors";
 import BloodStock from "./pages/hospital/BloodStock";
 import PatientRequests from "./pages/hospital/PatientRequests";
 import Campaigns from "./pages/hospital/Campaigns";
-import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibilityForm";
+// import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibilityForm";
+import { BloodRequestsPage } from "./pages/donor/BloodRequestsPage";
+import { ProfilePage } from "./pages/donor/ProfilePage";
 
 function App() {
   return (
@@ -57,7 +59,12 @@ function App() {
         <Route path="/donor" element={<Donor />}>
           <Route path="" element={<DonorDashboard />} />
           <Route path="dashboard" element={<DonorDashboard />} />
-          <Route path="form" element={<BloodDonationEligibilityForm />} />
+          {/* <Route
+            path="bloodRequestsPage/eligibility/${request.request_id}"
+            element={<BloodDonationEligibilityForm />}
+          /> */}
+          <Route path="bloodRequestsPage" element={<BloodRequestsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </Router>
