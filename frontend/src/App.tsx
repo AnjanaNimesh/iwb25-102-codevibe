@@ -15,6 +15,10 @@ import ManageHospitals from "./pages/admin/ManageHospitals";
 import ManageHospitalUsers from "./pages/admin/ManageHospitalUsers";
 import SystemNotifications from "./pages/admin/SystemNotifications";
 import ViewBloodStock from "./pages/admin/ViewBloodStock";
+import Donors from "./pages/hospital/Donors";
+import BloodStock from "./pages/hospital/BloodStock";
+import PatientRequests from "./pages/hospital/PatientRequests";
+import Campaigns from "./pages/hospital/Campaigns";
 
 
 
@@ -40,7 +44,12 @@ function App() {
 
         {/* Hospital layout & pages */}
         <Route path="/hospital" element={<Hospital />}>
+        <Route path="" element={<HospitalDashboard />} />
           <Route path="dashboard" element={<HospitalDashboard />} />
+          <Route path="donors" element={<Donors/>} />
+          <Route path="blood-stock" element={<BloodStock/>} />
+          <Route path="patient-requests" element={<PatientRequests/>} />
+            <Route path="campaigns" element={<Campaigns/>} />
         </Route>
 
         {/* Donor layout & pages */}
