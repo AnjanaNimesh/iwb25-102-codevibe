@@ -1,9 +1,25 @@
-import React from 'react'
+import { Outlet } from "react-router-dom";
+import { Navbar } from "../pages/donor/components/Navbar";
+import { Footer } from "../pages/donor/components/Footer";
 
 const Donor = () => {
   return (
-    <div>Donor</div>
-  )
-}
+    <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-1">
+        {/* Navbar */}
+        <Navbar />
 
-export default Donor
+        {/* Main content */}
+        <div className="flex-1 overflow-auto">
+          {/* <div className="bg-gray-50"> */}
+          <Outlet />
+          {/* </div> */}
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Donor;
