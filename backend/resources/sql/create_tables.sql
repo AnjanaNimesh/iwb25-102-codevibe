@@ -61,6 +61,8 @@ CREATE TABLE blood_request (
     request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     request_status VARCHAR(20) DEFAULT 'Pending',
     notes VARCHAR(255),
+    admission_number VARCHAR(50),
+    is_deleted TINYINT(1) DEFAULT 0,
     FOREIGN KEY (hospital_id) REFERENCES hospital(hospital_id)
 );
 

@@ -17,6 +17,7 @@ public final mysql:Client dbClient = check new (
     database = DATABASE
 );
 
+public listener http:Listener hospitalListener= new (9090);
 public listener http:Listener dashboardListener = new (9092);
 
 public function connectDatabase() returns error? {
