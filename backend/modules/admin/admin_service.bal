@@ -2,6 +2,8 @@ import backend.database;
 import ballerina/http;
 import ballerina/io;
 import ballerina/sql;
+import ballerina/crypto;
+
 
 @http:ServiceConfig {
     cors: {
@@ -355,19 +357,54 @@ resource function put hospitals/[int hospital_id](http:Request req) returns json
     // }
 
     //add hospital users to the system
-    resource function post hospitalUsers(http:Request req) returns json|error {
-    // Extract JSON payload from request
-    json payload = check req.getJsonPayload();
+//     resource function post hospitalUsers(http:Request req) returns json|error {
+//     // Extract JSON payload from request
+//     json payload = check req.getJsonPayload();
 
-    // Map JSON payload to the expected record type
+//     // Map JSON payload to the expected record type
+//     addHospitalUsers newhospitalUsers = check payload.cloneWithType(addHospitalUsers);
+
+//     // Get hospital_id from hospital_name
+//     sql:ParameterizedQuery getHospitalIdQuery = 
+//         `SELECT hospital_id FROM hospital WHERE hospital_name = ${newhospitalUsers.hospital_name}`;
+
+//     record {|int hospital_id;|}? hospitalRecord = 
+//         check database:dbClient->queryRow(getHospitalIdQuery);
+
+//     if hospitalRecord is () {
+//         return { message: "Invalid hospital name." };
+//     }
+
+//     int hospitalId = hospitalRecord.hospital_id;
+
+//     // Insert into hospital_user table using fetched hospitalId
+//     sql:ParameterizedQuery insertQuery = `INSERT INTO hospital_user 
+//         (hospital_email, hospital_id, password_hash)
+//         VALUES (${newhospitalUsers.hospital_email}, ${hospitalId}, ${newhospitalUsers.password_hash})`;
+
+//     var result = database:dbClient->execute(insertQuery);
+
+//     if result is error {
+//         string errMsg = result.message();
+
+//         if string:indexOf(errMsg, "Duplicate entry") != -1 {
+//             return { message: "A hospital user with this hospital email or hospital ID already exists." };
+//         } else {
+//             return { message: "An unexpected error occurred: " + errMsg };
+//         }
+//     }
+
+//     return { message: "Hospital User added successfully." };
+// }
+
+resource function post hospitalUsers(http:Request req) returns json|error {
+    json payload = check req.getJsonPayload();
     addHospitalUsers newhospitalUsers = check payload.cloneWithType(addHospitalUsers);
 
-    // Get hospital_id from hospital_name
+    // Get hospital_id
     sql:ParameterizedQuery getHospitalIdQuery = 
         `SELECT hospital_id FROM hospital WHERE hospital_name = ${newhospitalUsers.hospital_name}`;
-
-    record {|int hospital_id;|}? hospitalRecord = 
-        check database:dbClient->queryRow(getHospitalIdQuery);
+    record {|int hospital_id;|}? hospitalRecord = check database:dbClient->queryRow(getHospitalIdQuery);
 
     if hospitalRecord is () {
         return { message: "Invalid hospital name." };
@@ -375,18 +412,19 @@ resource function put hospitals/[int hospital_id](http:Request req) returns json
 
     int hospitalId = hospitalRecord.hospital_id;
 
-    // Insert into hospital_user table using fetched hospitalId
+    // Hash the password using crypto:generateBcrypt
+    string hashedPassword = check crypto:hashBcrypt(newhospitalUsers.password, 12);
+
     sql:ParameterizedQuery insertQuery = `INSERT INTO hospital_user 
         (hospital_email, hospital_id, password_hash)
-        VALUES (${newhospitalUsers.hospital_email}, ${hospitalId}, ${newhospitalUsers.password_hash})`;
+        VALUES (${newhospitalUsers.hospital_email}, ${hospitalId}, ${hashedPassword})`;
 
     var result = database:dbClient->execute(insertQuery);
 
     if result is error {
         string errMsg = result.message();
-
         if string:indexOf(errMsg, "Duplicate entry") != -1 {
-            return { message: "A hospital user with this hospital email or hospital ID already exists." };
+            return { message: "A hospital user with this email or hospital ID already exists." };
         } else {
             return { message: "An unexpected error occurred: " + errMsg };
         }
