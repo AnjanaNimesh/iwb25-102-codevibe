@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   UsersIcon,
   SearchIcon,
@@ -8,137 +8,134 @@ import {
   XCircleIcon,
   ClockIcon,
   BookOpenIcon as BookMarked,
-  Eye
-} from 'lucide-react';
-import DOMPurify from 'dompurify';
-import type { Donation } from './types/index.ts';
-import axios from 'axios';
+  Eye,
+} from "lucide-react";
+import DOMPurify from "dompurify";
+import type { Donation } from "./types/index.ts";
+import axios from "axios";
 
-const API_BASE_URL = 'http://localhost:9090/hospital';
-const HOSPITAL_ID = 4; // Change this to match your backend test data
+const API_BASE_URL = "http://localhost:9090/hospital";
+const HOSPITAL_ID = 3; // Change this to match your backend test data
 
 const Donors = () => {
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedDonor, setSelectedDonor] = useState<Donation | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
-  const [certificateHtml, setCertificateHtml] = useState('');
+  const [certificateHtml, setCertificateHtml] = useState("");
   const [loading, setLoading] = useState(false);
 
-
   const fetchDonations = async () => {
-  try {
-    const response = await axios.get(
-      `${API_BASE_URL}/donationsWithDonors?hospital_id=${HOSPITAL_ID}`
-    );
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/donationsWithDonors?hospital_id=${HOSPITAL_ID}`
+      );
 
-    const mappedDonations = response.data.map((item: any) => ({
-      donation_id: item.donation_id,
-      donor_id: item.donor_id,
-      donor_name: item.donor_name,
-      email: item.email,
-      blood_group: item.blood_group,
-      phone_number: item.phone_number,
-      donate_date: item.donate_date,
-      donate_status: item.donate_status,
-      last_donation_date: item.last_donation_date,
-    })) as Donation[];
+      const mappedDonations = response.data.map((item: any) => ({
+        donation_id: item.donation_id,
+        donor_id: item.donor_id,
+        donor_name: item.donor_name,
+        email: item.email,
+        blood_group: item.blood_group,
+        phone_number: item.phone_number,
+        donate_date: item.donate_date,
+        donate_status: item.donate_status,
+        last_donation_date: item.last_donation_date,
+      })) as Donation[];
 
-    setDonations(mappedDonations);
-  } catch (error) {
-    console.error('Error fetching donations:', error);
-    alert('Failed to fetch donations. Please try again.');
-  }
-};
-
+      setDonations(mappedDonations);
+    } catch (error) {
+      console.error("Error fetching donations:", error);
+      alert("Failed to fetch donations. Please try again.");
+    }
+  };
 
   useEffect(() => {
     fetchDonations();
   }, []);
 
   const handleUpdateStatus = async (donationId: number, newStatus: string) => {
-  setLoading(true);
-  try {
-    // Update donation status
-    const { data: statusResult } = await axios.post(
-      `${API_BASE_URL}/updateStatus`,
-      { donation_id: donationId, new_status: newStatus },
-      { params: { hospital_id: HOSPITAL_ID } }
-    );
-    console.log(statusResult.message);
-
-    // Send certificate if status is "Complete"
-    if (newStatus === 'Complete') {
-      const { data: certificateResult } = await axios.post(
-        `${API_BASE_URL}/sendCertificate`,
-        { donation_id: donationId, hospital_name: 'City General Hospital' },
+    setLoading(true);
+    try {
+      // Update donation status
+      const { data: statusResult } = await axios.post(
+        `${API_BASE_URL}/updateStatus`,
+        { donation_id: donationId, new_status: newStatus },
         { params: { hospital_id: HOSPITAL_ID } }
       );
-      console.log(certificateResult.message);
-      alert(certificateResult.message);
-    }
+      console.log(statusResult.message);
 
-    await fetchDonations();
-  } catch (error) {
-    console.error('Error:', error);
-    alert(`Failed to process request: ${(error as Error).message}`);
-  } finally {
-    setLoading(false);
-    closeModal();
-  }
-};
+      // Send certificate if status is "Complete"
+      if (newStatus === "Complete") {
+        const { data: certificateResult } = await axios.post(
+          `${API_BASE_URL}/sendCertificate`,
+          { donation_id: donationId, hospital_name: "City General Hospital" },
+          { params: { hospital_id: HOSPITAL_ID } }
+        );
+        console.log(certificateResult.message);
+        alert(certificateResult.message);
+      }
+
+      await fetchDonations();
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Failed to process request: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+      closeModal();
+    }
+  };
 
   const fetchCertificatePreview = async (donationId: number) => {
-  setLoading(true);
-  try {
-    const { data } = await axios.get(
-      `${API_BASE_URL}/certificatePreview/${donationId}`,
-      {
-        params: {
-          hospital_id: HOSPITAL_ID,
-          hospital_name: 'City General Hospital',
-        },
+    setLoading(true);
+    try {
+      const { data } = await axios.get(
+        `${API_BASE_URL}/certificatePreview/${donationId}`,
+        {
+          params: {
+            hospital_id: HOSPITAL_ID,
+            hospital_name: "City General Hospital",
+          },
+        }
+      );
+
+      if (data.success) {
+        setCertificateHtml(DOMPurify.sanitize(data.html));
+        setIsCertificateModalOpen(true);
+      } else {
+        throw new Error("Certificate preview not available");
       }
-    );
-
-    if (data.success) {
-      setCertificateHtml(DOMPurify.sanitize(data.html));
-      setIsCertificateModalOpen(true);
-    } else {
-      throw new Error('Certificate preview not available');
+    } catch (error) {
+      console.error("Error fetching certificate preview:", error);
+      alert("Failed to load certificate preview. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching certificate preview:', error);
-    alert('Failed to load certificate preview. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleShowDetails = (donation: Donation) => {
-  setSelectedDonor(donation);
-  setIsModalOpen(true);
-};
+    setSelectedDonor(donation);
+    setIsModalOpen(true);
+  };
 
-const handleDelete = async (donor_id: number) => {
-  if (confirm('Are you sure you want to delete this donor?')) {
-    try {
-      const response = await axios.delete(
-        `${API_BASE_URL}/donors/${donor_id}?hospital_id=${HOSPITAL_ID}`
-      );
-      
-      alert(response.data.message || 'Donor deactivated successfully');
-      
-      // Refresh donor list after delete
-      fetchDonations();
-    } catch (err) {
-      console.error("Error deleting donor", err);
-      alert("Failed to delete donor. Please try again.");
+  const handleDelete = async (donor_id: number) => {
+    if (confirm("Are you sure you want to delete this donor?")) {
+      try {
+        const response = await axios.delete(
+          `${API_BASE_URL}/donors/${donor_id}?hospital_id=${HOSPITAL_ID}`
+        );
+
+        alert(response.data.message || "Donor deactivated successfully");
+
+        // Refresh donor list after delete
+        fetchDonations();
+      } catch (err) {
+        console.error("Error deleting donor", err);
+        alert("Failed to delete donor. Please try again.");
+      }
     }
-  }
-};
+  };
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -147,11 +144,11 @@ const handleDelete = async (donor_id: number) => {
 
   const closeCertificateModal = () => {
     setIsCertificateModalOpen(false);
-    setCertificateHtml('');
+    setCertificateHtml("");
   };
 
   const formatDateTime = (dateTime: string | null) => {
-    if (!dateTime) return 'N/A';
+    if (!dateTime) return "N/A";
     try {
       return new Date(dateTime).toLocaleString();
     } catch (error) {
@@ -161,9 +158,9 @@ const handleDelete = async (donor_id: number) => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Complete':
+      case "Complete":
         return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
-      case 'Reject':
+      case "Reject":
         return <XCircleIcon className="h-4 w-4 text-red-600" />;
       default:
         return <ClockIcon className="h-4 w-4 text-yellow-600" />;
@@ -171,7 +168,7 @@ const handleDelete = async (donor_id: number) => {
   };
 
   const getDateLabel = (status: string) => {
-    return status === 'Complete' ? 'Completion Date' : 'Donation Date';
+    return status === "Complete" ? "Completion Date" : "Donation Date";
   };
 
   const filteredDonations = donations.filter(
@@ -185,7 +182,9 @@ const handleDelete = async (donor_id: number) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <UsersIcon className="h-6 w-6 text-blue-500 mr-2" />
-          <h1 className="text-2xl font-bold text-gray-800">Donation Management</h1>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Donation Management
+          </h1>
         </div>
       </div>
 
@@ -232,32 +231,37 @@ const handleDelete = async (donor_id: number) => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredDonations.map((donation) => (
                 <tr key={donation.donation_id} className="hover:bg-gray-50">
-                  <td
-                    className="px-6 py-4 whitespace-nowrap"
-                    
-                  >
-                    <div className="font-medium text-gray-900">{donation.donor_name}</div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="font-medium text-gray-900">
+                      {donation.donor_name}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                       {donation.blood_group}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{donation.phone_number}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                    {donation.phone_number}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDateTime(donation.donate_date)}</div>
-                    <div className="text-xs text-gray-500">{getDateLabel(donation.donate_status)}</div>
+                    <div className="text-sm text-gray-900">
+                      {formatDateTime(donation.donate_date)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {getDateLabel(donation.donate_status)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {getStatusIcon(donation.donate_status)}
                       <span
                         className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          donation.donate_status === 'Complete'
-                            ? 'bg-green-100 text-green-800'
-                            : donation.donate_status === 'Reject'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                          donation.donate_status === "Complete"
+                            ? "bg-green-100 text-green-800"
+                            : donation.donate_status === "Reject"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {donation.donate_status}
@@ -266,12 +270,16 @@ const handleDelete = async (donor_id: number) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button className="text-blue-600 hover:text-blue-900 ">
-                      <Eye className="h-4 w-4 cursor-pointer mr-3"
-                      onClick={() => handleShowDetails(donation)} />
+                      <Eye
+                        className="h-4 w-4 cursor-pointer mr-3"
+                        onClick={() => handleShowDetails(donation)}
+                      />
                     </button>
-                      <button className="text-red-600 hover:text-red-900">
-                      <TrashIcon className="h-4 w-4"
-                      onClick={() => handleDelete(donation.donor_id)} />
+                    <button className="text-red-600 hover:text-red-900">
+                      <TrashIcon
+                        className="h-4 w-4"
+                        onClick={() => handleDelete(donation.donor_id)}
+                      />
                     </button>
                   </td>
                 </tr>
@@ -282,7 +290,8 @@ const handleDelete = async (donor_id: number) => {
 
         <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing <span className="font-medium">{filteredDonations.length}</span> of{' '}
+            Showing{" "}
+            <span className="font-medium">{filteredDonations.length}</span> of{" "}
             <span className="font-medium">{donations.length}</span> donations
           </div>
           <div className="flex-1 flex justify-end">
@@ -313,23 +322,31 @@ const handleDelete = async (donor_id: number) => {
 
             <div className="space-y-4">
               <div>
-                <span className="font-medium text-gray-700">Donor Name:</span> {selectedDonor.donor_name}
+                <span className="font-medium text-gray-700">Donor Name:</span>{" "}
+                {selectedDonor.donor_name}
               </div>
               <div>
-                <span className="font-medium text-gray-700">Blood Group:</span> {selectedDonor.blood_group}
+                <span className="font-medium text-gray-700">Blood Group:</span>{" "}
+                {selectedDonor.blood_group}
               </div>
               <div>
-                <span className="font-medium text-gray-700">Email:</span> {selectedDonor.email || 'N/A'}
+                <span className="font-medium text-gray-700">Email:</span>{" "}
+                {selectedDonor.email || "N/A"}
               </div>
               <div>
-                <span className="font-medium text-gray-700">Phone Number:</span> {selectedDonor.phone_number}
+                <span className="font-medium text-gray-700">Phone Number:</span>{" "}
+                {selectedDonor.phone_number}
               </div>
               <div>
-                <span className="font-medium text-gray-700">Last Donation Date:</span>{' '}
-                {selectedDonor.last_donation_date || 'N/A'}
+                <span className="font-medium text-gray-700">
+                  Last Donation Date:
+                </span>{" "}
+                {selectedDonor.last_donation_date || "N/A"}
               </div>
               <div>
-                <span className="font-medium text-gray-700">{getDateLabel(selectedDonor.donate_status)}:</span>{' '}
+                <span className="font-medium text-gray-700">
+                  {getDateLabel(selectedDonor.donate_status)}:
+                </span>{" "}
                 {formatDateTime(selectedDonor.donate_date)}
               </div>
               <div className="flex items-center">
@@ -339,7 +356,7 @@ const handleDelete = async (donor_id: number) => {
                   <span className="ml-1">{selectedDonor.donate_status}</span>
                 </div>
               </div>
-              {selectedDonor.donate_status === 'Complete' && (
+              {selectedDonor.donate_status === "Complete" && (
                 <div className="bg-green-50 p-3 rounded-md border border-green-200">
                   <div className="flex items-center text-green-800 text-sm">
                     <CheckCircleIcon className="h-4 w-4 mr-2" />
@@ -352,12 +369,14 @@ const handleDelete = async (donor_id: number) => {
               )}
             </div>
 
-            {selectedDonor.donate_status === 'Complete' && (
+            {selectedDonor.donate_status === "Complete" && (
               <div className="mt-6 flex justify-end space-x-4">
                 <button
                   className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-600 disabled:opacity-50"
                   disabled={loading}
-                  onClick={() => fetchCertificatePreview(selectedDonor.donation_id)}
+                  onClick={() =>
+                    fetchCertificatePreview(selectedDonor.donation_id)
+                  }
                 >
                   <BookMarked className="h-4 w-4 mr-1" />
                   View Certificate
@@ -367,61 +386,81 @@ const handleDelete = async (donor_id: number) => {
                   disabled={loading}
                   onClick={async () => {
                     try {
-                      const response = await fetch(`${API_BASE_URL}/sendCertificate?hospital_id=${HOSPITAL_ID}`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          donation_id: selectedDonor.donation_id,
-                          hospital_name: 'City General Hospital',
-                        }),
-                      });
+                      const response = await fetch(
+                        `${API_BASE_URL}/sendCertificate?hospital_id=${HOSPITAL_ID}`,
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            donation_id: selectedDonor.donation_id,
+                            hospital_name: "City General Hospital",
+                          }),
+                        }
+                      );
                       if (!response.ok) {
-                        throw new Error('Failed to send certificate');
+                        throw new Error("Failed to send certificate");
                       }
                       const result = await response.json();
                       alert(result.message);
                     } catch (error) {
-                      console.error('Error sending certificate:', error);
-                      alert('Failed to send certificate. Please try again.');
+                      console.error("Error sending certificate:", error);
+                      alert("Failed to send certificate. Please try again.");
                     }
                   }}
                 >
-                  <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <svg
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
                   </svg>
                   Send Certificate
                 </button>
               </div>
             )}
 
-            {selectedDonor.donate_status !== 'Complete' && selectedDonor.donate_status !== 'Reject' && (
-              <div className="mt-6 flex justify-end space-x-4">
-                <button
-                  className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 flex items-center disabled:opacity-50"
-                  disabled={loading}
-                  onClick={async () => {
-                    await handleUpdateStatus(selectedDonor.donation_id, 'Complete');
-                    closeModal();
-                  }}
-                >
-                  <CheckCircleIcon className="h-4 w-4 mr-1" />
-                  Mark as Complete
-                </button>
-                <button
-                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 flex items-center disabled:opacity-50"
-                  disabled={loading}
-                  onClick={async () => {
-                    await handleUpdateStatus(selectedDonor.donation_id, 'Reject');
-                    closeModal();
-                  }}
-                >
-                  <XCircleIcon className="h-4 w-4 mr-1" />
-                  Mark as Reject
-                </button>
-              </div>
-            )}
+            {selectedDonor.donate_status !== "Complete" &&
+              selectedDonor.donate_status !== "Reject" && (
+                <div className="mt-6 flex justify-end space-x-4">
+                  <button
+                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 flex items-center disabled:opacity-50"
+                    disabled={loading}
+                    onClick={async () => {
+                      await handleUpdateStatus(
+                        selectedDonor.donation_id,
+                        "Complete"
+                      );
+                      closeModal();
+                    }}
+                  >
+                    <CheckCircleIcon className="h-4 w-4 mr-1" />
+                    Mark as Complete
+                  </button>
+                  <button
+                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 flex items-center disabled:opacity-50"
+                    disabled={loading}
+                    onClick={async () => {
+                      await handleUpdateStatus(
+                        selectedDonor.donation_id,
+                        "Reject"
+                      );
+                      closeModal();
+                    }}
+                  >
+                    <XCircleIcon className="h-4 w-4 mr-1" />
+                    Mark as Reject
+                  </button>
+                </div>
+              )}
 
             {loading && (
               <div className="mt-4 text-center">
@@ -431,7 +470,14 @@ const handleDelete = async (donor_id: number) => {
                     fill="none"
                     viewBox="0 0 24 24"
                   >
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
@@ -450,7 +496,9 @@ const handleDelete = async (donor_id: number) => {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Donation Certificate Preview</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                Donation Certificate Preview
+              </h2>
               <button onClick={closeCertificateModal}>
                 <XIcon className="h-6 w-6 text-gray-600 hover:text-gray-800" />
               </button>
