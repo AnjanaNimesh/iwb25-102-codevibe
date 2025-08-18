@@ -43,46 +43,101 @@ service /donors on new http:Listener(9095) {
         return history;
     }
 
-    // Update donor details
-    resource function put [int donorId](http:Request req) returns json|error {
-        json payload = check req.getJsonPayload();
-        string donor_name = (check payload.donor_name).toString();
-        string email = (check payload.email).toString();
-        string phone_number = (check payload.phone_number).toString();
-        string blood_group = (check payload.blood_group).toString();
-        string district_name = (check payload.district_name).toString();
+    // // Update donor details
+    // resource function put [int donorId](http:Request req) returns json|error {
+    //     json payload = check req.getJsonPayload();
+    //     string donor_name = (check payload.donor_name).toString();
+    //     string email = (check payload.email).toString();
+    //     string phone_number = (check payload.phone_number).toString();
+    //     string blood_group = (check payload.blood_group).toString();
+    //     string district_name = (check payload.district_name).toString();
 
-        // Validate blood_group
-        if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
-            return error("Invalid blood group");
-        }
+    //     // Validate blood_group
+    //     if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
+    //         return error("Invalid blood group");
+    //     }
 
-        // Get district_id from district_name
-        sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
-        record { int district_id; }? district = check database:dbClient->queryRow(districtQuery);
-        if district is () {
-            return error("District not found");
-        }
+    //     // Get district_id from district_name
+    //     sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
+    //     record { int district_id; }? district = check database:dbClient->queryRow(districtQuery);
+    //     if district is () {
+    //         return error("District not found");
+    //     }
+
+    //     // Check email uniqueness (excluding current donor)
+    //     sql:ParameterizedQuery emailCheck = `SELECT donor_id FROM donor WHERE email = ${email} AND donor_id != ${donorId}`;
+    //     record { int donor_id; }? existingDonor = check database:dbClient->queryRow(emailCheck);
+    //     if existingDonor is record { int donor_id; } {
+    //         return error("Email already in use");
+    //     }
+
+    //     // Update donor
+    //     sql:ParameterizedQuery updateQuery = `UPDATE donor 
+    //                                          SET donor_name = ${donor_name}, email = ${email}, 
+    //                                              phone_number = ${phone_number}, blood_group = ${blood_group}, 
+    //                                              district_id = ${district.district_id}
+    //                                          WHERE donor_id = ${donorId}`;
+    //     sql:ExecutionResult result = check database:dbClient->execute(updateQuery);
+    //     if result.affectedRowCount == 0 {
+    //         return error("Donor not found or update failed");
+    //     }
+    //     return {"message": "Donor details updated successfully"};
+    // }
+
+
+// Update donor details
+resource function put [int donorId](http:Request req) returns json|error {
+    // Get JSON payload
+    json payload = check req.getJsonPayload();
+
+    // Extract and trim values from payload
+    string donor_name = (check payload.donor_name).toString().trim();
+    string email = (check payload.email).toString().trim();
+    string phone_number = (check payload.phone_number).toString().trim();
+    string blood_group = (check payload.blood_group).toString().trim();
+    string district_name = (check payload.district_name).toString().trim();
+
+    // Validate blood_group
+    if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
+        return error("Invalid blood group");
+    }
+
+    // Get district_id from district_name
+    sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
+    record {|int district_id; anydata...;|}?|sql:Error districtResult = database:dbClient->queryRow(districtQuery);
+
+    if districtResult is () {
+        return error("District not found");
+    } else if districtResult is record {|int district_id; anydata...;|} {
+        int districtId = districtResult.district_id;
 
         // Check email uniqueness (excluding current donor)
         sql:ParameterizedQuery emailCheck = `SELECT donor_id FROM donor WHERE email = ${email} AND donor_id != ${donorId}`;
-        record { int donor_id; }? existingDonor = check database:dbClient->queryRow(emailCheck);
-        if existingDonor is record { int donor_id; } {
+        record {|int donor_id; anydata...;|}?|sql:Error existingDonor = database:dbClient->queryRow(emailCheck);
+
+        if existingDonor is record {|int donor_id; anydata...;|} {
             return error("Email already in use");
         }
 
-        // Update donor
+        // Update donor details
         sql:ParameterizedQuery updateQuery = `UPDATE donor 
                                              SET donor_name = ${donor_name}, email = ${email}, 
                                                  phone_number = ${phone_number}, blood_group = ${blood_group}, 
-                                                 district_id = ${district.district_id}
+                                                 district_id = ${districtId}
                                              WHERE donor_id = ${donorId}`;
         sql:ExecutionResult result = check database:dbClient->execute(updateQuery);
+
         if result.affectedRowCount == 0 {
             return error("Donor not found or update failed");
         }
+
         return {"message": "Donor details updated successfully"};
+    } else {
+        return error("Database error occurred while fetching district");
     }
+}
+
+
 }
 
 public function startDonorsService() returns error? {
