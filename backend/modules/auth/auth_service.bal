@@ -1572,5 +1572,5 @@ function generateJWTTokenLegacy(string hospital_email) returns string|error {
 }
 
 public function startAuthService() returns error? {
-    io:println("Multi-role auth service started on port 9094");
+    io:println("Multi-role auth service started on port 9093");
 }
