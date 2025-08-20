@@ -1,12 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Calendar,
-  MapPin,
-  Plus,
-  Edit,
-  Trash,
-  Search,
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Calendar, MapPin, Plus, Edit, Trash, Search } from "lucide-react";
 
 interface Campaign {
   campaign_id: number;
@@ -18,21 +11,21 @@ interface Campaign {
 
 const Campaigns = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editCampaignId, setEditCampaignId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newCampaign, setNewCampaign] = useState({
-    title: '',
-    location: '',
-    date: '',
+    title: "",
+    location: "",
+    date: "",
     image: null as File | null,
   });
   // New state for image preview
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const hospitalId = 1; // Hardcoded for demo; replace with dynamic value in production
+  const hospitalId = 3; // Hardcoded for demo; replace with dynamic value in production
 
   // Fetch campaigns on component mount
   useEffect(() => {
@@ -52,18 +45,24 @@ const Campaigns = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:9090/hospital/bloodcampaigns?hospital_id=${hospitalId}`);
-      
+      const response = await fetch(
+        `http://localhost:9090/hospital/bloodcampaigns?hospital_id=${hospitalId}`
+      );
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-      
+
       const data = await response.json();
       setCampaigns(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
-      setError(`Failed to fetch campaigns: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Error fetching campaigns:", error);
+      setError(
+        `Failed to fetch campaigns: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
       setCampaigns([]);
     } finally {
       setIsLoading(false);
@@ -72,50 +71,50 @@ const Campaigns = () => {
 
   const validateForm = () => {
     if (!newCampaign.title.trim()) {
-      setError('Campaign title is required');
+      setError("Campaign title is required");
       return false;
     }
     if (!newCampaign.location.trim()) {
-      setError('Location is required');
+      setError("Location is required");
       return false;
     }
     if (!newCampaign.date) {
-      setError('Date is required');
+      setError("Date is required");
       return false;
     }
     if (!showEditForm && !newCampaign.image) {
-      setError('Image is required for new campaigns');
+      setError("Image is required for new campaigns");
       return false;
     }
-    
+
     const selectedDate = new Date(newCampaign.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (isNaN(selectedDate.getTime())) {
-      setError('Invalid date format');
+      setError("Invalid date format");
       return false;
     }
-    
+
     if (selectedDate < today) {
-      setError('Campaign date cannot be in the past');
+      setError("Campaign date cannot be in the past");
       return false;
     }
-    
+
     if (newCampaign.image) {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
       if (!allowedTypes.includes(newCampaign.image.type)) {
-        setError('Only JPEG and PNG images are allowed');
+        setError("Only JPEG and PNG images are allowed");
         return false;
       }
-      
+
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (newCampaign.image.size > maxSize) {
-        setError('Image size must be less than 5MB');
+        setError("Image size must be less than 5MB");
         return false;
       }
     }
-    
+
     setError(null);
     return true;
   };
@@ -126,39 +125,45 @@ const Campaigns = () => {
     }
 
     const formData = new FormData();
-    formData.append('title', newCampaign.title.trim());
-    formData.append('location', newCampaign.location.trim());
-    formData.append('date', newCampaign.date);
-    
+    formData.append("title", newCampaign.title.trim());
+    formData.append("location", newCampaign.location.trim());
+    formData.append("date", newCampaign.date);
+
     if (newCampaign.image) {
-      formData.append('image', newCampaign.image);
+      formData.append("image", newCampaign.image);
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await fetch(`http://localhost:9090/hospital/bloodcampaigns/add?hospital_id=${hospitalId}`, {
-        method: 'POST',
-        body: formData,
-      });
-      
+
+      const response = await fetch(
+        `http://localhost:9090/hospital/bloodcampaigns/add?hospital_id=${hospitalId}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
       const result = await response.json();
-      
+
       if (response.ok) {
-        alert(result.message || 'Campaign added successfully!');
+        alert(result.message || "Campaign added successfully!");
         setShowAddForm(false);
-        setNewCampaign({ title: '', location: '', date: '', image: null });
+        setNewCampaign({ title: "", location: "", date: "", image: null });
         setImagePreview(null); // Clear preview
         await fetchCampaigns();
       } else {
-        const errorMsg = result.message || `HTTP ${response.status}: Failed to add campaign`;
+        const errorMsg =
+          result.message || `HTTP ${response.status}: Failed to add campaign`;
         setError(errorMsg);
         alert(errorMsg);
       }
     } catch (error) {
-      console.error('Error adding campaign:', error);
-      const errorMsg = `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error("Error adding campaign:", error);
+      const errorMsg = `Network error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`;
       setError(errorMsg);
       alert(errorMsg);
     } finally {
@@ -172,40 +177,47 @@ const Campaigns = () => {
     }
 
     const formData = new FormData();
-    formData.append('title', newCampaign.title.trim());
-    formData.append('location', newCampaign.location.trim());
-    formData.append('date', newCampaign.date);
-    
+    formData.append("title", newCampaign.title.trim());
+    formData.append("location", newCampaign.location.trim());
+    formData.append("date", newCampaign.date);
+
     if (newCampaign.image) {
-      formData.append('image', newCampaign.image);
+      formData.append("image", newCampaign.image);
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await fetch(`http://localhost:9090/hospital/bloodcampaigns/${editCampaignId}?hospital_id=${hospitalId}`, {
-        method: 'PUT',
-        body: formData,
-      });
-      
+
+      const response = await fetch(
+        `http://localhost:9090/hospital/bloodcampaigns/${editCampaignId}?hospital_id=${hospitalId}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+
       const result = await response.json();
-      
+
       if (response.ok) {
-        alert(result.message || 'Campaign updated successfully!');
+        alert(result.message || "Campaign updated successfully!");
         setShowEditForm(false);
-        setNewCampaign({ title: '', location: '', date: '', image: null });
+        setNewCampaign({ title: "", location: "", date: "", image: null });
         setImagePreview(null); // Clear preview
         setEditCampaignId(null);
         await fetchCampaigns();
       } else {
-        const errorMsg = result.message || `HTTP ${response.status}: Failed to update campaign`;
+        const errorMsg =
+          result.message ||
+          `HTTP ${response.status}: Failed to update campaign`;
         setError(errorMsg);
         alert(errorMsg);
       }
     } catch (error) {
-      console.error('Error updating campaign:', error);
-      const errorMsg = `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error("Error updating campaign:", error);
+      const errorMsg = `Network error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`;
       setError(errorMsg);
       alert(errorMsg);
     } finally {
@@ -214,31 +226,38 @@ const Campaigns = () => {
   };
 
   const deleteCampaign = async (campaignId: number) => {
-    if (!window.confirm('Are you sure you want to deactivate this campaign?')) {
+    if (!window.confirm("Are you sure you want to deactivate this campaign?")) {
       return;
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      
-      const response = await fetch(`http://localhost:9090/hospital/bloodcampaigns/${campaignId}?hospital_id=${hospitalId}`, {
-        method: 'DELETE',
-      });
-      
+
+      const response = await fetch(
+        `http://localhost:9090/hospital/bloodcampaigns/${campaignId}?hospital_id=${hospitalId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       const result = await response.json();
-      
+
       if (response.ok) {
-        alert(result.message || 'Campaign deactivated successfully!');
+        alert(result.message || "Campaign deactivated successfully!");
         await fetchCampaigns();
       } else {
-        const errorMsg = result.message || `HTTP ${response.status}: Failed to deactivate campaign`;
+        const errorMsg =
+          result.message ||
+          `HTTP ${response.status}: Failed to deactivate campaign`;
         setError(errorMsg);
         alert(errorMsg);
       }
     } catch (error) {
-      console.error('Error deactivating campaign:', error);
-      const errorMsg = `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error("Error deactivating campaign:", error);
+      const errorMsg = `Network error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`;
       setError(errorMsg);
       alert(errorMsg);
     } finally {
@@ -254,7 +273,9 @@ const Campaigns = () => {
       image: null,
     });
     // Set preview to existing image URL
-    setImagePreview(`http://localhost:9090/hospital/bloodcampaigns/image/${campaign.campaign_id}?hospital_id=${hospitalId}`);
+    setImagePreview(
+      `http://localhost:9090/hospital/bloodcampaigns/image/${campaign.campaign_id}?hospital_id=${hospitalId}`
+    );
     setEditCampaignId(campaign.campaign_id);
     setShowEditForm(true);
     setError(null);
@@ -263,20 +284,20 @@ const Campaigns = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
       if (!allowedTypes.includes(file.type)) {
-        setError('Only JPEG and PNG images are allowed');
-        e.target.value = '';
+        setError("Only JPEG and PNG images are allowed");
+        e.target.value = "";
         return;
       }
-      
+
       const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
-        setError('Image size must be less than 5MB');
-        e.target.value = '';
+        setError("Image size must be less than 5MB");
+        e.target.value = "";
         return;
       }
-      
+
       // Revoke previous preview URL if it exists
       if (imagePreview) {
         URL.revokeObjectURL(imagePreview);
@@ -297,7 +318,7 @@ const Campaigns = () => {
   const cancelForm = () => {
     setShowAddForm(false);
     setShowEditForm(false);
-    setNewCampaign({ title: '', location: '', date: '', image: null });
+    setNewCampaign({ title: "", location: "", date: "", image: null });
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
       setImagePreview(null);
@@ -309,7 +330,7 @@ const Campaigns = () => {
   const filteredCampaigns = campaigns.filter(
     (campaign) =>
       campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.location.toLowerCase().includes(searchTerm.toLowerCase()),
+      campaign.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -400,7 +421,8 @@ const Campaigns = () => {
                     alt="Image Preview"
                     className="h-32 w-32 object-cover rounded"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/128?text=No+Image';
+                      e.currentTarget.src =
+                        "https://via.placeholder.com/128?text=No+Image";
                     }}
                   />
                 </div>
@@ -414,7 +436,7 @@ const Campaigns = () => {
                 type="date"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={newCampaign.date}
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
                 onChange={(e) =>
                   setNewCampaign({ ...newCampaign, date: e.target.value })
                 }
@@ -435,7 +457,7 @@ const Campaigns = () => {
               onClick={addCampaign}
               disabled={isLoading}
             >
-              {isLoading ? 'Adding...' : 'Add Campaign'}
+              {isLoading ? "Adding..." : "Add Campaign"}
             </button>
           </div>
         </div>
@@ -495,7 +517,8 @@ const Campaigns = () => {
                     alt="Image Preview"
                     className="h-32 w-32 object-cover rounded"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/128?text=No+Image';
+                      e.currentTarget.src =
+                        "https://via.placeholder.com/128?text=No+Image";
                     }}
                   />
                 </div>
@@ -509,7 +532,7 @@ const Campaigns = () => {
                 type="date"
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={newCampaign.date}
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
                 onChange={(e) =>
                   setNewCampaign({ ...newCampaign, date: e.target.value })
                 }
@@ -530,7 +553,7 @@ const Campaigns = () => {
               onClick={editCampaign}
               disabled={isLoading}
             >
-              {isLoading ? 'Updating...' : 'Update Campaign'}
+              {isLoading ? "Updating..." : "Update Campaign"}
             </button>
           </div>
         </div>
@@ -580,8 +603,11 @@ const Campaigns = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredCampaigns.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                    {isLoading ? 'Loading campaigns...' : 'No campaigns found'}
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    {isLoading ? "Loading campaigns..." : "No campaigns found"}
                   </td>
                 </tr>
               ) : (
@@ -604,7 +630,8 @@ const Campaigns = () => {
                         alt={campaign.title}
                         className="h-10 w-10 object-cover rounded"
                         onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/40?text=No+Image';
+                          e.currentTarget.src =
+                            "https://via.placeholder.com/40?text=No+Image";
                         }}
                       />
                     </td>
@@ -614,9 +641,9 @@ const Campaigns = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          campaign.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                          campaign.status === "active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
                         }`}
                       >
                         {campaign.status}
@@ -646,7 +673,8 @@ const Campaigns = () => {
         </div>
         <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing <span className="font-medium">{filteredCampaigns.length}</span> of{' '}
+            Showing{" "}
+            <span className="font-medium">{filteredCampaigns.length}</span> of{" "}
             <span className="font-medium">{campaigns.length}</span> campaigns
           </div>
         </div>
