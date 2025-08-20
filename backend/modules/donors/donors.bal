@@ -137,6 +137,45 @@ resource function put [int donorId](http:Request req) returns json|error {
     }
 }
 
+// Get nearby hospitals within a radius (default 50 km)
+    resource function get hospitals/nearby(http:Request req) returns Hospital[]|error {
+        float latitude = check float:fromString(req.getQueryParamValue("latitude") ?: "0");
+        float longitude = check float:fromString(req.getQueryParamValue("longitude") ?: "0");
+        float radius = check float:fromString(req.getQueryParamValue("radius") ?: "50");
+
+        // Haversine formula in SQL to calculate distance
+        sql:ParameterizedQuery query = `
+            SELECT 
+                h.hospital_id,
+                h.hospital_name,
+                h.hospital_type,
+                h.hospital_address,
+                h.contact_number,
+                h.district_id,
+                d.district_name,
+                h.latitude,
+                h.longitude,
+                (
+                    6371 * acos(
+                        cos(radians(${latitude})) * cos(radians(h.latitude)) *
+                        cos(radians(h.longitude) - radians(${longitude})) +
+                        sin(radians(${latitude})) * sin(radians(h.latitude))
+                    )
+                ) AS distance
+            FROM hospital h
+            JOIN district d ON h.district_id = d.district_id
+            HAVING distance <= ${radius}
+            ORDER BY distance
+        `;
+        stream<Hospital, sql:Error?> resultStream = database:dbClient->query(query);
+        Hospital[] hospitals = [];
+        check resultStream.forEach(function(Hospital hospital) {
+            hospitals.push(hospital);
+        });
+        check resultStream.close();
+        return hospitals;
+    }
+
 
 }
 

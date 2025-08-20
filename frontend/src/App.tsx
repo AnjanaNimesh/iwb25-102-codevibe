@@ -64,10 +64,10 @@ function App() {
             path="bloodRequestsPage/eligibility/:id"
             element={<BloodDonationEligibilityForm />}
           />
-          {/* <Route
-            path="/eligibility/:id/result"
+          <Route
+            path="eligibility/:id/result"
             element={<BloodDonationEligibilityResult />}
-          /> */}
+          />
 
           <Route path="bloodRequestsPage" element={<BloodRequestsPage />} />
           <Route path="profile" element={<ProfilePage />} />
