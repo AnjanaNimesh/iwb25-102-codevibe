@@ -88,8 +88,19 @@ CREATE TABLE notification (
 
 -- admin table
 CREATE TABLE admin (
-    admin_email VARCHAR(50) PRIMARY KEY,
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_email VARCHAR(50),
     password_hash VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE blood_campaign (
+    campaign_id INT AUTO_INCREMENT PRIMARY KEY,
+    hospital_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    image LONGBLOB, 
+    date DATE NOT NULL, 
+    status ENUM('active', 'deactive') DEFAULT 'active',
+    FOREIGN KEY (hospital_id) REFERENCES hospital(hospital_id)
+);
 
