@@ -85,3 +85,20 @@ public type BloodCampaignUpdate record {|
     string date;
     // Image is handled as form data, not as a field in this record
 |};
+
+type UserPayload record {
+    string user_id;
+    string email;
+    string role;
+    int hospital_id?; // Optional hospital_id from JWT
+};
+
+public type HospitalUser record {
+    string user_id;
+    string email;
+    string full_name;
+    int? hospital_id;
+    string role;
+    string status;
+};
+
