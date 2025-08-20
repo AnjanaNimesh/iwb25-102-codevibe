@@ -30,8 +30,10 @@ modules = [
 	{org = "asus", packageName = "backend", moduleName = "backend"},
 	{org = "asus", packageName = "backend", moduleName = "backend.admin"},
 	{org = "asus", packageName = "backend", moduleName = "backend.auth"},
+	{org = "asus", packageName = "backend", moduleName = "backend.blood_requests"},
 	{org = "asus", packageName = "backend", moduleName = "backend.database"},
 	{org = "asus", packageName = "backend", moduleName = "backend.dependency"},
+	{org = "asus", packageName = "backend", moduleName = "backend.donors"},
 	{org = "asus", packageName = "backend", moduleName = "backend.hospital"}
 ]
 
