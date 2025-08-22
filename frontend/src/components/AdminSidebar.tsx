@@ -251,7 +251,7 @@ const AdminSidebar: React.FC = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-red-700">🩸BloodConnect</h1>
+          <h1 className="text-lg font-bold text-red-700">🩸LifeDrop - Admin</h1>
           {mobileOpen && (
             <button
               aria-label="Close menu"
