@@ -348,9 +348,10 @@ const AddHospitalUser = () => {
     try {
       const response = await fetch('http://localhost:9092/dashboard/admin/hospitalData', {
         method: 'GET',
+        credentials: 'include', 
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       if (!response.ok) {
@@ -438,6 +439,7 @@ const AddHospitalUser = () => {
       // Make API call to add hospital user - Updated URL to match your backend
       const response = await fetch('http://localhost:9092/dashboard/admin/hospitalUsers', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
