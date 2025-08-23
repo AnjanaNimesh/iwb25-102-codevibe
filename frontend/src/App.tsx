@@ -22,13 +22,15 @@ import Campaigns from "./pages/hospital/Campaigns";
 import { BloodRequestsPage } from "./pages/donor/BloodRequestsPage";
 import { ProfilePage } from "./pages/donor/ProfilePage";
 import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibilityForm";
+import Login from "./pages/shared/Login";
 
 function App() {
   return (
     <Router>
       <Routes>
         {/* Shared pages */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />,
+        <Route path="/login" element={<Login/>}/>
 
         {/* Admin layout & pages */}
         <Route path="/admin" element={<Admin />}>
