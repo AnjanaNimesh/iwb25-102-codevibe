@@ -1242,32 +1242,50 @@ service /auth on database:authListener {
     //     return response;
     // }
 
-    resource function post logout() returns http:Response {
-    http:Response response = new;
+//     resource function post logout() returns http:Response {
+//     http:Response response = new;
 
-    // Clear auth_token cookie - match all original attributes
-    http:Cookie clearAuthCookie = new("auth_token", "",
-        path = "/", 
-        httpOnly = true,
-        expires = "Thu, 01 Jan 1970 00:00:00 GMT"  // Use expires instead of maxAge
-    );
+//     // Clear auth_token cookie - match all original attributes
+//     http:Cookie clearAuthCookie = new("auth_token", "",
+//         path = "/", 
+//         httpOnly = true,
+//         expires = "Thu, 01 Jan 1970 00:00:00 GMT"  // Use expires instead of maxAge
+//     );
     
-    // Clear hospital_auth_token cookie  
-    http:Cookie clearHospitalAuthCookie = new("hospital_auth_token", "",
-        path = "/", 
+//     // Clear hospital_auth_token cookie  
+//     http:Cookie clearHospitalAuthCookie = new("hospital_auth_token", "",
+//         path = "/", 
+//         httpOnly = true,
+//         expires = "Thu, 01 Jan 1970 00:00:00 GMT"
+//     );
+
+//     response.addCookie(clearAuthCookie);
+//     response.addCookie(clearHospitalAuthCookie);
+
+//     response.setJsonPayload({
+//         status: "success",
+//         message: "Logged out successfully"
+//     });
+//     response.statusCode = 200;
+
+//     return response;
+// }
+
+resource function post logout() returns http:Response {
+    http:Response response = new;
+    // Clear the JWT cookie with maxAge = 0
+    http:Cookie expiredCookie = new("auth_token", "expired",
+        path = "/",
+        maxAge = 0,
         httpOnly = true,
-        expires = "Thu, 01 Jan 1970 00:00:00 GMT"
+        secure = false
     );
-
-    response.addCookie(clearAuthCookie);
-    response.addCookie(clearHospitalAuthCookie);
-
+    response.addCookie(expiredCookie);
     response.setJsonPayload({
         status: "success",
         message: "Logged out successfully"
     });
     response.statusCode = 200;
-
     return response;
 }
 }
