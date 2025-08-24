@@ -15,8 +15,10 @@ CREATE TABLE donor (
     district_id INT NOT NULL,
     blood_group VARCHAR(5) NOT NULL CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
     last_donation_date DATE,
+    gender VARCHAR(10) NOT NULL DEFAULT 'Male',
     status VARCHAR DEFAULT 'active',
-    FOREIGN KEY (district_id) REFERENCES district(district_id)
+    FOREIGN KEY (district_id) REFERENCES district(district_id),
+    ADD CONSTRAINT chk_gender CHECK (gender IN ('Male', 'Female', 'Other'));
 );
 
 -- hospital table
@@ -27,6 +29,8 @@ CREATE TABLE hospital (
     hospital_address VARCHAR(100),
     contact_number VARCHAR(15),
     district_id INT NOT NULL,
+    latitude DECIMAL(9,6) NOT NULL,
+    longitude DECIMAL(9,6) NOT NULL,
     status VARCHAR DEFAULT 'active',
     FOREIGN KEY (district_id) REFERENCES district(district_id)
 );
@@ -79,6 +83,16 @@ CREATE TABLE donation (
     FOREIGN KEY (blood_request_id) REFERENCES blood_request(request_id)
 );
 
+--donation history table
+CREATE TABLE donation_history (
+    donation_id INT AUTO_INCREMENT PRIMARY KEY,
+    donor_id INT NOT NULL,
+    donation_date DATE NOT NULL,
+    location VARCHAR(100) NOT NULL,
+    donation_type VARCHAR(20) NOT NULL CHECK (donation_type IN ('Whole Blood', 'Plasma', 'Platelets', 'Double Red Cells')),
+    FOREIGN KEY (donor_id) REFERENCES donor(donor_id)
+);
+
 -- notification table
 CREATE TABLE notification (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,7 +104,8 @@ CREATE TABLE notification (
 CREATE TABLE admin (
     admin_id INT AUTO_INCREMENT PRIMARY KEY,
     admin_email VARCHAR(50),
-    password_hash VARCHAR(255) NOT NULL
+    password_hash VARCHAR(255) NOT NULL,
+    status ENUM DEFAULT 'active',
 );
 
 CREATE TABLE blood_campaign (
