@@ -249,7 +249,7 @@ import Donor from "./layout/Donor";
 // Shared Pages
 import Home from "./pages/shared/Home";
 import Login from "./pages/shared/Login";
-import DonorSignup from "./pages/shared/DonorSignup"; 
+import DonorSignup from "./pages/shared/DonorSignup";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -273,6 +273,7 @@ import DonorDashboard from "./pages/donor/DonorDashboard";
 import { BloodRequestsPage } from "./pages/donor/BloodRequestsPage";
 import { ProfilePage } from "./pages/donor/ProfilePage";
 import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibilityForm";
+import { BloodDonationEligibilityResult } from "./pages/donor/BloodDonationEligibilityResult";
 
 function App() {
   return (
@@ -319,15 +320,9 @@ function App() {
             <Route path="addHospital" element={<AddHospitals />} />
             <Route path="addHospitalUsers" element={<AddHospitalUsers />} />
             <Route path="manageHospitals" element={<ManageHospitals />} />
-            <Route
-              path="manageHosptitalUsers"
-              element={<ManageHospitalUsers />}
-            />
+            <Route path="manageHosptitalUsers" element={<ManageHospitalUsers />} />
             <Route path="manageDonors" element={<ManageDonors />} />
-            <Route
-              path="systemNotifications"
-              element={<SystemNotifications />}
-            />
+            <Route path="systemNotifications" element={<SystemNotifications />} />
             <Route path="viewBloodStock" element={<ViewBloodStock />} />
           </Route>
 
@@ -363,11 +358,15 @@ function App() {
               path="bloodRequestsPage/eligibility/:id"
               element={<BloodDonationEligibilityForm />}
             />
+            <Route
+              path="eligibility/:id/result"
+              element={<BloodDonationEligibilityResult />}
+            />
             <Route path="bloodRequestsPage" element={<BloodRequestsPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          {/* Fallback for unknown routes - redirect to login */}
+          {/* Fallback for unknown routes */}
           <Route path="*" element={<Login />} />
         </Routes>
       </Router>

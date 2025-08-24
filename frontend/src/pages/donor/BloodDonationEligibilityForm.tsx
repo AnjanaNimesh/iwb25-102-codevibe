@@ -214,7 +214,7 @@ interface EligibilityFormData {
 }
 
 export const BloodDonationEligibilityForm: React.FC = () => {
-  const { requestId } = useParams<{ requestId: string }>();
+  const { id } = useParams<{ id: string }>(); // Changed from requestId to id
   const navigate = useNavigate();
   const [formData, setFormData] = useState<EligibilityFormData>({
     age: null,
@@ -259,6 +259,9 @@ export const BloodDonationEligibilityForm: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof EligibilityFormData, string>> = {};
+    if (!id) {
+      newErrors.age = "Invalid request ID.";
+    }
     if (formData.age === null) {
       newErrors.age = "Please enter your age.";
     } else if (formData.age < 18 || formData.age > 60) {
@@ -322,7 +325,15 @@ export const BloodDonationEligibilityForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || !id) {
+      if (!id) {
+        setErrors((prev) => ({
+          ...prev,
+          age: "Invalid request ID. Please access this form from a valid blood request.",
+        }));
+      }
+      return;
+    }
 
     const isEligible =
       formData.age !== null &&
@@ -356,7 +367,7 @@ export const BloodDonationEligibilityForm: React.FC = () => {
       ? "You are eligible to donate blood! We will now check for nearby donation centers."
       : "You are not eligible to donate blood at this time due to one or more criteria.";
 
-    navigate(`/eligibility/${requestId}/result`, {
+    navigate(`/donor/eligibility/${id}/result`, {
       state: { isEligible, formData, result },
     });
   };
@@ -369,7 +380,7 @@ export const BloodDonationEligibilityForm: React.FC = () => {
         </h1>
         <p className="text-center text-gray-600 text-lg max-w-3xl mx-auto mb-10">
           Please answer the following questions to determine if you are eligible
-          to donate blood for Request ID: {requestId}.
+          to donate blood for Request ID: {id}.
         </p>
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit}>
@@ -935,7 +946,7 @@ export const BloodDonationEligibilityForm: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/blood-requests")}
+                onClick={() => navigate("/donor/bloodRequestsPage")}
                 className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-full transition-colors text-lg"
               >
                 Back to Requests

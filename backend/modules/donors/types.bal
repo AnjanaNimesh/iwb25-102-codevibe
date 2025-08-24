@@ -19,3 +19,17 @@ public type DonationHistory record {|
     string location;
     string donation_type;
 |};
+
+// Hospital record representing a hospital from the database
+public type Hospital record {|
+    int hospital_id;
+    string hospital_name;
+    string? hospital_type;
+    string? hospital_address;
+    string? contact_number;
+    int district_id;
+    string district_name;
+    decimal latitude;
+    decimal longitude;
+    float distance?;
+|};
