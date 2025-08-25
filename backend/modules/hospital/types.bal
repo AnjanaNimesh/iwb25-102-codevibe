@@ -102,3 +102,44 @@ public type HospitalUser record {
     string status;
 };
 
+
+
+type HospitalProfile record {|
+    string email;
+    string full_name;
+    int hospital_id;
+    string role;
+    string status;
+    string? hospital_type;
+    string? hospital_address;
+    string? contact_number;
+    int district_id;
+    decimal latitude;
+    decimal longitude;
+|};
+
+type HospitalUpdate record {|
+    string? hospital_name;
+    string? hospital_type;
+    string? hospital_address;
+    string? contact_number;
+    int? district_id;
+    decimal? latitude;
+    decimal? longitude;
+|};
+
+
+type ChangePasswordRequest record {
+    string old_password;
+    string new_password;
+};
+
+type District record {|
+    int district_id;
+    string district_name;
+|};
+
+type PasswordChangeRequest record {
+    string old_password;
+    string new_password;
+};
