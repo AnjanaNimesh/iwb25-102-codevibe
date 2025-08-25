@@ -4223,6 +4223,8 @@ import ballerina/io;
 import backend.database;
 import ballerina/regex as re;
 import ballerina/lang.array as arrays;
+import ballerina/crypto;
+
 
 // Gmail SMTP configuration
 email:SmtpConfiguration smtpConfig = {
@@ -5483,6 +5485,255 @@ resource function delete bloodrequests/[int requestId](http:Request req) returns
         }
         return response;
     }
+
+    resource function get profiles(http:Request req) returns http:Response|error {
+    UserPayload|http:Response userResult = extractUserFromToken(req);
+    if userResult is http:Response {
+        return userResult;
+    }
+    UserPayload userData = userResult;
+
+    stream<HospitalProfile, sql:Error?> resultStream = database:dbClient->query(`
+        SELECT hu.hospital_email as email, h.hospital_name as full_name, 
+               hu.hospital_id, 'hospital_user' as role, hu.status,
+               h.hospital_type, h.hospital_address, h.contact_number, 
+               h.district_id, h.latitude, h.longitude
+        FROM hospital_user hu
+        INNER JOIN hospital h ON hu.hospital_id = h.hospital_id
+        WHERE hu.hospital_email = ${userData.email} AND hu.status = 'active'
+    `);
+
+    HospitalProfile[] profiles = [];
+    check resultStream.forEach(function(HospitalProfile row) {
+        profiles.push(row);
+    });
+
+    http:Response response = new;
+    if profiles.length() == 0 {
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "User not found or inactive" 
+        });
+        response.statusCode = 404;
+    } else {
+        response.setJsonPayload({
+            status: "success",
+            data: profiles[0].toJson()
+        });
+        response.statusCode = 200;
+    }
+    return response;
+}
+
+
+// New PUT /profile for updating hospital details
+resource function put profile(http:Request req, @http:Payload HospitalUpdate updateData) returns http:Response|error {
+    UserPayload|http:Response userResult = extractUserFromToken(req);
+    if userResult is http:Response {
+        return userResult;
+    }
+    UserPayload userData = userResult;
+
+    int|http:Response hospitalIdResult = getHospitalIdFromUser(userData.email);
+    if hospitalIdResult is http:Response {
+        return hospitalIdResult;
+    }
+    int hospitalId = hospitalIdResult;
+
+    // Fetch current hospital details
+    record {| 
+        string hospital_name; 
+        string? hospital_type; 
+        string? hospital_address; 
+        string? contact_number; 
+        int district_id; 
+        decimal latitude; 
+        decimal longitude; 
+    |}? currentHospital = check database:dbClient->queryRow(`
+        SELECT hospital_name, hospital_type, hospital_address, contact_number, 
+               district_id, latitude, longitude
+        FROM hospital
+        WHERE hospital_id = ${hospitalId}
+    `);
+
+    if currentHospital is () {
+        return createErrorResponse("Hospital not found", 404);
+    }
+
+    // Use updated values or current values
+    string hospital_name = updateData.hospital_name ?: currentHospital.hospital_name;
+    string? hospital_type = updateData.hospital_type ?: currentHospital.hospital_type;
+    string? hospital_address = updateData.hospital_address ?: currentHospital.hospital_address;
+    string? contact_number = updateData.contact_number ?: currentHospital.contact_number;
+    int district_id = updateData.district_id ?: currentHospital.district_id;
+    decimal latitude = updateData.latitude ?: currentHospital.latitude;
+    decimal longitude = updateData.longitude ?: currentHospital.longitude;
+
+    sql:ExecutionResult result = check database:dbClient->execute(`
+        UPDATE hospital
+        SET hospital_name = ${hospital_name},
+            hospital_type = ${hospital_type},
+            hospital_address = ${hospital_address},
+            contact_number = ${contact_number},
+            district_id = ${district_id},
+            latitude = ${latitude},
+            longitude = ${longitude}
+        WHERE hospital_id = ${hospitalId}
+    `);
+
+    http:Response response = new;
+    if result.affectedRowCount > 0 {
+        response.setJsonPayload({ 
+            status: "success", 
+            message: "Profile updated successfully." 
+        });
+        response.statusCode = 200;
+    } else {
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "No changes made or update failed." 
+        });
+        response.statusCode = 400;
+    }
+    return response;
+}
+
+
+// New GET /districts to fetch district list
+resource function get districts(http:Request req) returns http:Response|error {
+    UserPayload|http:Response userResult = extractUserFromToken(req);
+    if userResult is http:Response {
+        return userResult;
+    }
+
+    stream<District, sql:Error?> resultStream = database:dbClient->query(`
+        SELECT district_id, district_name 
+        FROM district 
+        ORDER BY district_name ASC
+    `);
+
+    District[] districts = [];
+    check resultStream.forEach(function(District row) {
+        districts.push(row);
+    });
+
+    http:Response response = new;
+    response.setJsonPayload({
+        status: "success",
+        data: districts.map(d => d.toJson())
+    });
+    response.statusCode = 200;
+    return response;
+}
+
+// Protected: Change password
+    resource function post changePassword(http:Request req, @http:Payload PasswordChangeRequest passwordData) returns http:Response|error {
+        log:printInfo("Attempting to change password for request");
+
+        UserPayload|http:Response userResult = extractUserFromToken(req);
+        if userResult is http:Response {
+            log:printError("Token validation failed in changePassword: status=" + userResult.statusCode.toString() + ", message=" + (check userResult.getJsonPayload()).toJsonString());
+            return userResult;
+        }
+        UserPayload userData = userResult;
+        log:printInfo("Token validated successfully for user: " + userData.email);
+
+        // Validate new password length
+        if passwordData.new_password.length() < 6 {
+            log:printWarn("Password change rejected: New password too short for user " + userData.email);
+            return createErrorResponse("New password must be at least 6 characters long", 400);
+        }
+
+        // Fetch current password hash
+        stream<record {| string password_hash; |}, sql:Error?> passwordStream = database:dbClient->query(`
+            SELECT password_hash
+            FROM hospital_user
+            WHERE hospital_email = ${userData.email} AND status = 'active'
+        `);
+
+        record {| string password_hash; |}[] passwords = [];
+        error? streamError = passwordStream.forEach(function(record {| string password_hash; |} row) {
+            passwords.push(row);
+        });
+
+        http:Response response = new;
+        if streamError is error {
+            log:printError("Database error fetching password hash for " + userData.email + ": " + streamError.message());
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Database error: " + streamError.message() 
+            });
+            response.statusCode = 500;
+            return response;
+        }
+
+        if passwords.length() == 0 {
+            log:printWarn("User not found or inactive: " + userData.email);
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "User not found or inactive" 
+            });
+            response.statusCode = 404;
+            return response;
+        }
+
+        string storedPasswordHash = passwords[0].password_hash;
+        log:printInfo("Retrieved stored password hash for user: " + userData.email);
+        
+        // Generate HMAC-SHA256 hash for the provided old password
+        byte[] computedHash = check crypto:hmacSha256(
+            passwordData.old_password.toBytes(),
+            userData.email.toBytes()
+        );
+        string computedHashStr = computedHash.toBase64();
+        log:printInfo("Computed HMAC-SHA256 for old password: " + computedHashStr);
+
+        // Compare computed hash with stored hash
+        if computedHashStr != storedPasswordHash {
+            log:printWarn("Invalid old password provided for user: " + userData.email);
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Invalid current password" 
+            });
+            response.statusCode = 401;
+            return response;
+        }
+
+        // Hash new password
+        byte[] newPasswordHash = check crypto:hmacSha256(
+            passwordData.new_password.toBytes(),
+            userData.email.toBytes()
+        );
+        string newPasswordHashStr = newPasswordHash.toBase64();
+        log:printInfo("Computed HMAC-SHA256 for new password: " + newPasswordHashStr);
+
+        // Update password in database
+        sql:ExecutionResult result = check database:dbClient->execute(`
+            UPDATE hospital_user
+            SET password_hash = ${newPasswordHashStr}
+            WHERE hospital_email = ${userData.email}
+        `);
+
+        if result.affectedRowCount == 0 {
+            log:printError("Failed to update password for user: " + userData.email + ", no rows affected");
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Failed to update password" 
+            });
+            response.statusCode = 500;
+        } else {
+            log:printInfo("Password changed successfully for user: " + userData.email);
+            response.setJsonPayload({ 
+                status: "success", 
+                message: "Password changed successfully" 
+            });
+            response.statusCode = 200;
+        }
+        return response;
+    }
+
+
+
 }
 
 // Helper function to get hospital_id from user email

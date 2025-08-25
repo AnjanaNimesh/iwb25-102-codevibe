@@ -274,6 +274,7 @@ import { BloodRequestsPage } from "./pages/donor/BloodRequestsPage";
 import { ProfilePage } from "./pages/donor/ProfilePage";
 import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibilityForm";
 import { BloodDonationEligibilityResult } from "./pages/donor/BloodDonationEligibilityResult";
+import HospitalProfilePage from "./pages/hospital/Profile";
 
 function App() {
   return (
@@ -341,6 +342,7 @@ function App() {
             <Route path="blood-stock" element={<BloodStock />} />
             <Route path="patient-requests" element={<PatientRequests />} />
             <Route path="campaigns" element={<Campaigns />} />
+            <Route path="hospitalprofile" element={<HospitalProfilePage/>} />
           </Route>
 
           {/* Donor protected routes */}

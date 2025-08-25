@@ -2380,7 +2380,7 @@ const Donors = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold">
+                      <span className="px-3 py-1 bg-gradient-to-br from-red-400 to-red-500  text-white rounded-full text-sm font-semibold">
                         {donation.blood_group}
                       </span>
                     </td>
