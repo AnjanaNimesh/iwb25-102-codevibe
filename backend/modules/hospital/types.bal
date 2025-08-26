@@ -6,7 +6,11 @@ public type NewBloodRequest record {|
      string request_status; 
 |};
 
-
+// New type for password change request
+public  type PasswordChangeRequest record {|
+    string old_password;
+    string new_password;
+|};
 public type BloodRequest record {| 
     int request_id;
     int hospital_id;
@@ -129,17 +133,11 @@ type HospitalUpdate record {|
 |};
 
 
-type ChangePasswordRequest record {
-    string old_password;
-    string new_password;
-};
 
 type District record {|
     int district_id;
     string district_name;
 |};
 
-type PasswordChangeRequest record {
-    string old_password;
-    string new_password;
-};
+
+
