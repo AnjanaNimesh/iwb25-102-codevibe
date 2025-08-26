@@ -142,7 +142,9 @@
 // };
 // export default Sidebar;
 
-import { Link, useLocation } from "react-router-dom";
+
+
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HeartIcon,
   HomeIcon,
@@ -151,13 +153,27 @@ import {
   ActivityIcon,
   LogOutIcon,
 } from "lucide-react";
+import { useAuth } from "../../../contexts/AuthContext"; 
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const isActive = (path: string) => {
     return location.pathname === path
       ? "bg-red-50 text-red-600"
       : "text-gray-700 hover:bg-gray-100";
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      navigate("/login", { replace: true });
+    }
   };
 
   return (
@@ -204,15 +220,16 @@ const Sidebar = () => {
           <ActivityIcon className="h-5 w-5 mr-3" />
           <span>Campaigns</span>
         </Link>
-        <Link
-          to="/logout"
-          className={`flex items-center px-4 py-3 mt-auto ${isActive("/logout")}`}
+        <button
+          onClick={handleLogout}
+          className={`flex items-center px-4 py-3 mt-auto text-gray-700 hover:bg-gray-100 ${isActive("/logout")}`}
         >
           <LogOutIcon className="h-5 w-5 mr-3" />
           <span>Logout</span>
-        </Link>
+        </button>
       </nav>
     </div>
   );
 };
+
 export default Sidebar;
