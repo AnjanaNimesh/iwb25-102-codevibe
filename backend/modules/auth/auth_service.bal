@@ -1098,7 +1098,132 @@ service /auth on database:authListener {
         }
     }
 
-    // Token verification endpoint
+    // // Token verification endpoint
+    // resource function get verify(http:Request req) returns http:Response {
+    //     http:Response response = new;
+
+    //     http:Cookie[]? cookies = req.getCookies();
+    //     string? token = ();
+
+    //     if cookies is http:Cookie[] {
+    //         foreach http:Cookie cookie in cookies {
+    //             if cookie.name == "auth_token" {
+    //                 token = cookie.value;
+    //                 break;
+    //             }
+    //         }
+    //     }
+
+    //     if token is () {
+    //         response.setJsonPayload({ status: "error", message: "No token found" });
+    //         response.statusCode = 401;
+    //         return response;
+    //     }
+
+    //     string[] tokenParts = re:split(token, "\\.");
+
+    //     if tokenParts.length() != 3 {
+    //         response.setJsonPayload({ status: "error", message: "Invalid token format" });
+    //         response.statusCode = 401;
+    //         return response;
+    //     }
+
+    //     string encodedPayload = tokenParts[1];
+    //     byte[]|error payloadBytes = arrays:fromBase64(encodedPayload);
+
+    //     if payloadBytes is error {
+    //         response.setJsonPayload({ status: "error", message: "Invalid token encoding" });
+    //         response.statusCode = 401;
+    //         return response;
+    //     }
+
+    //     string|error payloadStr = string:fromBytes(payloadBytes);
+
+    //     if payloadStr is error {
+    //         response.setJsonPayload({ status: "error", message: "Invalid token payload encoding" });
+    //         response.statusCode = 401;
+    //         return response;
+    //     }
+
+    //     json|error payloadJson = payloadStr.fromJsonString();
+
+    //     if (payloadJson is error) {
+    //         response.setJsonPayload({ status: "error", message: "Invalid token payload JSON" });
+    //         response.statusCode = 401;
+    //         return response;
+    //     }
+
+    //     if (payloadJson is map<json>) {
+    //         json? issuerJson = payloadJson?.iss;
+    //         json? expJson    = payloadJson?.exp;
+    //         json? subJson    = payloadJson?.sub;
+
+    //         if issuerJson is () || expJson is () || subJson is () {
+    //             response.setJsonPayload({ status: "error", message: "Invalid token payload structure" });
+    //             response.statusCode = 401;
+    //             return response;
+    //         }
+
+    //         if !(issuerJson is string) || !(expJson is decimal) || !(subJson is string) {
+    //             response.setJsonPayload({ status: "error", message: "Invalid token payload structure" });
+    //             response.statusCode = 401;
+    //             return response;
+    //         }
+
+    //         string issuer = <string>issuerJson;
+    //         decimal exp   = <decimal>expJson;
+    //         string sub    = <string>subJson;
+
+    //         if issuer != "bloodlink-auth-service" {
+    //             response.setJsonPayload({ status: "error", message: "Invalid issuer" });
+    //             response.statusCode = 401;
+    //             return response;
+    //         }
+
+    //         decimal currentTime = <decimal>time:utcNow()[0];
+    //         if exp < currentTime {
+    //             response.setJsonPayload({ status: "error", message: "Token expired" });
+    //             response.statusCode = 401;
+    //             return response;
+    //         }
+
+    //         json? customClaimsJson = payloadJson?.customClaims;
+
+    //         if customClaimsJson is () || !(customClaimsJson is map<json>) {
+    //             response.setJsonPayload({ status: "error", message: "Invalid custom claims structure" });
+    //             response.statusCode = 401;
+    //             return response;
+    //         }
+
+    //         map<json> customClaims = <map<json>>customClaimsJson;
+    //         json roleJson = customClaims["role"];
+    //         json userIdJson = customClaims["userId"];
+
+    //         string role = roleJson is string ? <string>roleJson : "";
+    //         string userId = userIdJson is string ? <string>userIdJson : "";
+
+    //         response.setJsonPayload({
+    //             status: "success",
+    //             message: "Token valid",
+    //             user: {
+    //                 email: sub,
+    //                 role: role,
+    //                 userId: userId,
+    //                 exp: exp
+    //             }
+    //         });
+    //         response.statusCode = 200;
+    //         return response;
+    //     }
+
+    //     response.setJsonPayload({ status: "error", message: "Invalid payload format" });
+    //     response.statusCode = 401;
+    //     return response;
+    // }
+
+
+
+
     resource function get verify(http:Request req) returns http:Response {
         http:Response response = new;
 

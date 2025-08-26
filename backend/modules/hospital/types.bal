@@ -6,7 +6,11 @@ public type NewBloodRequest record {|
      string request_status; 
 |};
 
-
+// New type for password change request
+public  type PasswordChangeRequest record {|
+    string old_password;
+    string new_password;
+|};
 public type BloodRequest record {| 
     int request_id;
     int hospital_id;
@@ -101,4 +105,39 @@ public type HospitalUser record {
     string role;
     string status;
 };
+
+
+
+type HospitalProfile record {|
+    string email;
+    string full_name;
+    int hospital_id;
+    string role;
+    string status;
+    string? hospital_type;
+    string? hospital_address;
+    string? contact_number;
+    int district_id;
+    decimal latitude;
+    decimal longitude;
+|};
+
+type HospitalUpdate record {|
+    string? hospital_name;
+    string? hospital_type;
+    string? hospital_address;
+    string? contact_number;
+    int? district_id;
+    decimal? latitude;
+    decimal? longitude;
+|};
+
+
+
+type District record {|
+    int district_id;
+    string district_name;
+|};
+
+
 

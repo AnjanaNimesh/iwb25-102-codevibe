@@ -1,202 +1,3 @@
-
-// import backend.database;
-// import ballerina/http;
-// import ballerina/io;
-// import ballerina/sql;
-
-// @http:ServiceConfig {
-//     cors: {
-//         allowOrigins: ["http://localhost:5173", "*"],
-//         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//         allowHeaders: ["Content-Type", "Authorization"]
-//     }
-// }
-
-// service /donors on new http:Listener(9095) {
-//     // Get donor details by donor_id
-//     resource function get [int donorId](http:Request req) returns Donor|error {
-//         sql:ParameterizedQuery query = `SELECT d.donor_id, d.donor_name, d.email, d.phone_number, 
-//                                        d.district_id, dis.district_name, d.blood_group, d.last_donation_date
-//                                        FROM donor d
-//                                        JOIN district dis ON d.district_id = dis.district_id
-//                                        WHERE d.donor_id = ${donorId}`;
-//         Donor? donor = check database:dbClient->queryRow(query);
-//         if donor is () {
-//             return error("Donor not found");
-//         }
-//         return donor;
-//     }
-
-//     // Get donation history by donor_id
-//     resource function get [int donorId]/history(http:Request req) returns DonationHistory[]|error {
-//         stream<DonationHistory, sql:Error?> resultStream = database:dbClient->query(
-//             `SELECT donation_id, donor_id, donation_date, location, donation_type
-//              FROM donation_history
-//              WHERE donor_id = ${donorId}
-//              ORDER BY donation_date DESC`
-//         );
-//         DonationHistory[] history = [];
-//         check resultStream.forEach(function(DonationHistory donation) {
-//             history.push(donation);
-//         });
-//         check resultStream.close();
-//         return history;
-//     }
-
-//     // // Update donor details
-//     // resource function put [int donorId](http:Request req) returns json|error {
-//     //     json payload = check req.getJsonPayload();
-//     //     string donor_name = (check payload.donor_name).toString();
-//     //     string email = (check payload.email).toString();
-//     //     string phone_number = (check payload.phone_number).toString();
-//     //     string blood_group = (check payload.blood_group).toString();
-//     //     string district_name = (check payload.district_name).toString();
-
-//     //     // Validate blood_group
-//     //     if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
-//     //         return error("Invalid blood group");
-//     //     }
-
-//     //     // Get district_id from district_name
-//     //     sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
-//     //     record { int district_id; }? district = check database:dbClient->queryRow(districtQuery);
-//     //     if district is () {
-//     //         return error("District not found");
-//     //     }
-
-//     //     // Check email uniqueness (excluding current donor)
-//     //     sql:ParameterizedQuery emailCheck = `SELECT donor_id FROM donor WHERE email = ${email} AND donor_id != ${donorId}`;
-//     //     record { int donor_id; }? existingDonor = check database:dbClient->queryRow(emailCheck);
-//     //     if existingDonor is record { int donor_id; } {
-//     //         return error("Email already in use");
-//     //     }
-
-//     //     // Update donor
-//     //     sql:ParameterizedQuery updateQuery = `UPDATE donor 
-//     //                                          SET donor_name = ${donor_name}, email = ${email}, 
-//     //                                              phone_number = ${phone_number}, blood_group = ${blood_group}, 
-//     //                                              district_id = ${district.district_id}
-//     //                                          WHERE donor_id = ${donorId}`;
-//     //     sql:ExecutionResult result = check database:dbClient->execute(updateQuery);
-//     //     if result.affectedRowCount == 0 {
-//     //         return error("Donor not found or update failed");
-//     //     }
-//     //     return {"message": "Donor details updated successfully"};
-//     // }
-
-
-// // Update donor details
-// resource function put [int donorId](http:Request req) returns json|error {
-//     // Get JSON payload
-//     json payload = check req.getJsonPayload();
-
-//     // Extract and trim values from payload
-//     string donor_name = (check payload.donor_name).toString().trim();
-//     string email = (check payload.email).toString().trim();
-//     string phone_number = (check payload.phone_number).toString().trim();
-//     string blood_group = (check payload.blood_group).toString().trim();
-//     string district_name = (check payload.district_name).toString().trim();
-
-//     // Validate blood_group
-//     if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
-//         return error("Invalid blood group");
-//     }
-
-//     // Get district_id from district_name
-//     sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
-//     record {|int district_id; anydata...;|}?|sql:Error districtResult = database:dbClient->queryRow(districtQuery);
-
-//     if districtResult is () {
-//         return error("District not found");
-//     } else if districtResult is record {|int district_id; anydata...;|} {
-//         int districtId = districtResult.district_id;
-
-//         // Check email uniqueness (excluding current donor)
-//         sql:ParameterizedQuery emailCheck = `SELECT donor_id FROM donor WHERE email = ${email} AND donor_id != ${donorId}`;
-//         record {|int donor_id; anydata...;|}?|sql:Error existingDonor = database:dbClient->queryRow(emailCheck);
-
-//         if existingDonor is record {|int donor_id; anydata...;|} {
-//             return error("Email already in use");
-//         }
-
-//         // Update donor details
-//         sql:ParameterizedQuery updateQuery = `UPDATE donor 
-//                                              SET donor_name = ${donor_name}, email = ${email}, 
-//                                                  phone_number = ${phone_number}, blood_group = ${blood_group}, 
-//                                                  district_id = ${districtId}
-//                                              WHERE donor_id = ${donorId}`;
-//         sql:ExecutionResult result = check database:dbClient->execute(updateQuery);
-
-//         if result.affectedRowCount == 0 {
-//             return error("Donor not found or update failed");
-//         }
-
-//         return {"message": "Donor details updated successfully"};
-//     } else {
-//         return error("Database error occurred while fetching district");
-//     }
-// }
-
-// // Get nearby hospitals within a radius (default 50 km)
-//     resource function get hospitals/nearby(http:Request req) returns Hospital[]|error {
-//         float latitude = check float:fromString(req.getQueryParamValue("latitude") ?: "0");
-//         float longitude = check float:fromString(req.getQueryParamValue("longitude") ?: "0");
-//         float radius = check float:fromString(req.getQueryParamValue("radius") ?: "50");
-
-//         // Haversine formula in SQL to calculate distance
-//         sql:ParameterizedQuery query = `
-//             SELECT 
-//                 h.hospital_id,
-//                 h.hospital_name,
-//                 h.hospital_type,
-//                 h.hospital_address,
-//                 h.contact_number,
-//                 h.district_id,
-//                 d.district_name,
-//                 h.latitude,
-//                 h.longitude,
-//                 (
-//                     6371 * acos(
-//                         cos(radians(${latitude})) * cos(radians(h.latitude)) *
-//                         cos(radians(h.longitude) - radians(${longitude})) +
-//                         sin(radians(${latitude})) * sin(radians(h.latitude))
-//                     )
-//                 ) AS distance
-//             FROM hospital h
-//             JOIN district d ON h.district_id = d.district_id
-//             HAVING distance <= ${radius}
-//             ORDER BY distance
-//         `;
-//         stream<Hospital, sql:Error?> resultStream = database:dbClient->query(query);
-//         Hospital[] hospitals = [];
-//         check resultStream.forEach(function(Hospital hospital) {
-//             hospitals.push(hospital);
-//         });
-//         check resultStream.close();
-//         return hospitals;
-//     }
-
-
-// }
-
-// public function startDonorsService() returns error? {
-//     io:println("Donors service started on port: 9095");
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import backend.database;
 import ballerina/http;
 import ballerina/io;
@@ -218,7 +19,6 @@ service /donors on new http:Listener(9095) {
     
     // Get donor details by donor_id (donors can only access their own data)
     resource function get [int donorId](http:Request req) returns Donor|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -227,14 +27,14 @@ service /donors on new http:Listener(9095) {
             return error("Access denied: Authentication required");
         }
 
-        // Check if the authenticated donor is trying to access their own data
         int authenticatedDonorId = check int:fromString(authResult.userId);
         if authenticatedDonorId != donorId {
             return error("Access denied: You can only access your own donor information");
         }
 
         sql:ParameterizedQuery query = `SELECT d.donor_id, d.donor_name, d.email, d.phone_number, 
-                                       d.district_id, dis.district_name, d.blood_group, d.last_donation_date
+                                       d.district_id, dis.district_name, d.blood_group, d.last_donation_date,
+                                       d.gender, d.status
                                        FROM donor d
                                        JOIN district dis ON d.district_id = dis.district_id
                                        WHERE d.donor_id = ${donorId}`;
@@ -247,7 +47,6 @@ service /donors on new http:Listener(9095) {
 
     // Get current donor's details (using token information)
     resource function get profile(http:Request req) returns Donor|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -260,7 +59,7 @@ service /donors on new http:Listener(9095) {
 
         sql:ParameterizedQuery query = `SELECT d.donor_id, d.donor_name, d.email, d.phone_number, 
                                        d.district_id, dis.district_name, d.blood_group, d.last_donation_date,
-                                       d.status
+                                       d.gender, d.status
                                        FROM donor d
                                        JOIN district dis ON d.district_id = dis.district_id
                                        WHERE d.donor_id = ${donorId}`;
@@ -273,7 +72,6 @@ service /donors on new http:Listener(9095) {
 
     // Get donation history by donor_id (donors can only access their own history)
     resource function get [int donorId]/history(http:Request req) returns DonationHistory[]|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -282,7 +80,6 @@ service /donors on new http:Listener(9095) {
             return error("Access denied: Authentication required");
         }
 
-        // Check if the authenticated donor is trying to access their own data
         int authenticatedDonorId = check int:fromString(authResult.userId);
         if authenticatedDonorId != donorId {
             return error("Access denied: You can only access your own donation history");
@@ -304,7 +101,6 @@ service /donors on new http:Listener(9095) {
 
     // Get current donor's donation history (using token information)
     resource function get history(http:Request req) returns DonationHistory[]|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -331,7 +127,6 @@ service /donors on new http:Listener(9095) {
 
     // Update donor details (donors can only update their own information)
     resource function put [int donorId](http:Request req) returns json|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -340,21 +135,18 @@ service /donors on new http:Listener(9095) {
             return error("Access denied: Authentication required");
         }
 
-        // Check if the authenticated donor is trying to update their own data
         int authenticatedDonorId = check int:fromString(authResult.userId);
         if authenticatedDonorId != donorId {
             return error("Access denied: You can only update your own donor information");
         }
 
-        // Get JSON payload
         json payload = check req.getJsonPayload();
-
-        // Extract and trim values from payload
         string donor_name = (check payload.donor_name).toString().trim();
         string email = (check payload.email).toString().trim();
         string phone_number = (check payload.phone_number).toString().trim();
         string blood_group = (check payload.blood_group).toString().trim();
         string district_name = (check payload.district_name).toString().trim();
+        string gender = (check payload.gender).toString().trim();
 
         // Validate input
         if donor_name.length() == 0 {
@@ -366,13 +158,13 @@ service /donors on new http:Listener(9095) {
         if phone_number.length() == 0 {
             return error("Phone number cannot be empty");
         }
-
-        // Validate blood_group
         if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
             return error("Invalid blood group");
         }
+        if ["male", "female"].indexOf(gender) == -1 {
+            return error("Gender must be 'male' or 'female'");
+        }
 
-        // Get district_id from district_name
         sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
         record {|int district_id; anydata...;|}?|sql:Error districtResult = database:dbClient->queryRow(districtQuery);
 
@@ -381,7 +173,6 @@ service /donors on new http:Listener(9095) {
         } else if districtResult is record {|int district_id; anydata...;|} {
             int districtId = districtResult.district_id;
 
-            // Check email uniqueness (excluding current donor)
             sql:ParameterizedQuery emailCheck = `SELECT donor_id FROM donor WHERE email = ${email} AND donor_id != ${donorId}`;
             record {|int donor_id; anydata...;|}?|sql:Error existingDonor = database:dbClient->queryRow(emailCheck);
 
@@ -389,11 +180,10 @@ service /donors on new http:Listener(9095) {
                 return error("Email already in use");
             }
 
-            // Update donor details
             sql:ParameterizedQuery updateQuery = `UPDATE donor 
                                                  SET donor_name = ${donor_name}, email = ${email}, 
                                                      phone_number = ${phone_number}, blood_group = ${blood_group}, 
-                                                     district_id = ${districtId}
+                                                     district_id = ${districtId}, gender = ${gender}
                                                  WHERE donor_id = ${donorId}`;
             sql:ExecutionResult result = check database:dbClient->execute(updateQuery);
 
@@ -409,7 +199,6 @@ service /donors on new http:Listener(9095) {
 
     // Update current donor's profile (using token information)
     resource function put profile(http:Request req) returns json|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -419,18 +208,14 @@ service /donors on new http:Listener(9095) {
         }
 
         int donorId = check int:fromString(authResult.userId);
-
-        // Get JSON payload
         json payload = check req.getJsonPayload();
-
-        // Extract and trim values from payload
         string donor_name = (check payload.donor_name).toString().trim();
         string email = (check payload.email).toString().trim();
         string phone_number = (check payload.phone_number).toString().trim();
         string blood_group = (check payload.blood_group).toString().trim();
         string district_name = (check payload.district_name).toString().trim();
+        string gender = (check payload.gender).toString().trim();
 
-        // Validate input
         if donor_name.length() == 0 {
             return error("Donor name cannot be empty");
         }
@@ -440,13 +225,13 @@ service /donors on new http:Listener(9095) {
         if phone_number.length() == 0 {
             return error("Phone number cannot be empty");
         }
-
-        // Validate blood_group
         if ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].indexOf(blood_group) == -1 {
             return error("Invalid blood group");
         }
+        if ["male", "female"].indexOf(gender) == -1 {
+            return error("Gender must be 'male' or 'female'");
+        }
 
-        // Get district_id from district_name
         sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${district_name}`;
         record {|int district_id; anydata...;|}?|sql:Error districtResult = database:dbClient->queryRow(districtQuery);
 
@@ -455,7 +240,6 @@ service /donors on new http:Listener(9095) {
         } else if districtResult is record {|int district_id; anydata...;|} {
             int districtId = districtResult.district_id;
 
-            // Check email uniqueness (excluding current donor)
             sql:ParameterizedQuery emailCheck = `SELECT donor_id FROM donor WHERE email = ${email} AND donor_id != ${donorId}`;
             record {|int donor_id; anydata...;|}?|sql:Error existingDonor = database:dbClient->queryRow(emailCheck);
 
@@ -463,11 +247,10 @@ service /donors on new http:Listener(9095) {
                 return error("Email already in use");
             }
 
-            // Update donor details
             sql:ParameterizedQuery updateQuery = `UPDATE donor 
                                                  SET donor_name = ${donor_name}, email = ${email}, 
                                                      phone_number = ${phone_number}, blood_group = ${blood_group}, 
-                                                     district_id = ${districtId}
+                                                     district_id = ${districtId}, gender = ${gender}
                                                  WHERE donor_id = ${donorId}`;
             sql:ExecutionResult result = check database:dbClient->execute(updateQuery);
 
@@ -483,7 +266,6 @@ service /donors on new http:Listener(9095) {
 
     // Check if donor is eligible to donate (based on last donation date)
     resource function get eligibility(http:Request req) returns json|error {
-        // Validate donor authentication
         AuthValidationResult|error authResult = validateDonorToken(req);
         if authResult is error {
             return error("Authentication failed: " + authResult.message());
@@ -494,9 +276,9 @@ service /donors on new http:Listener(9095) {
 
         int donorId = check int:fromString(authResult.userId);
 
-        sql:ParameterizedQuery query = `SELECT last_donation_date, blood_group 
+        sql:ParameterizedQuery query = `SELECT last_donation_date, blood_group, gender 
                                        FROM donor WHERE donor_id = ${donorId}`;
-        record {|string? last_donation_date; string blood_group;|}? donor = 
+        record {|string? last_donation_date; string blood_group; string? gender;|}? donor = 
             check database:dbClient->queryRow(query);
 
         if donor is () {
@@ -508,10 +290,11 @@ service /donors on new http:Listener(9095) {
         int daysUntilEligible = 0;
 
         if donor.last_donation_date is string {
-            // Calculate days since last donation (simplified calculation)
-            // In a real implementation, you would use proper date parsing and calculation
-            // For now, assume a 56-day (8 weeks) waiting period for whole blood donation
-            daysUntilEligible = 56; // This should be calculated based on actual date difference
+            time:Utc lastDonationTime = check time:utcFromString(donor.last_donation_date ?: "");
+            time:Utc currentTime = time:utcNow();
+            decimal secondsDiff = time:utcDiffSeconds(currentTime, lastDonationTime);
+            decimal daysDiff = secondsDiff / (24 * 60 * 60);
+            daysUntilEligible = 56 - <int>daysDiff; // 56-day waiting period for whole blood
             if daysUntilEligible > 0 {
                 isEligible = false;
                 eligibilityMessage = string `You need to wait ${daysUntilEligible} more days before your next donation`;
@@ -523,13 +306,73 @@ service /donors on new http:Listener(9095) {
             "message": eligibilityMessage,
             "daysUntilEligible": daysUntilEligible,
             "lastDonationDate": donor.last_donation_date,
-            "bloodGroup": donor.blood_group
+            "bloodGroup": donor.blood_group,
+            "gender": donor.gender
         };
+    }
+
+    // Get nearby hospitals for donation
+    resource function get hospitals/nearby(http:Request req) returns Hospital[]|error {
+        AuthValidationResult|error authResult = validateDonorToken(req);
+        if authResult is error {
+            return error("Authentication failed: " + authResult.message());
+        }
+        if !authResult.isValid {
+            return error("Access denied: Authentication required");
+        }
+
+        int donorId = check int:fromString(authResult.userId);
+        // Verify donor exists
+        sql:ParameterizedQuery donorQuery = `SELECT donor_id FROM donor WHERE donor_id = ${donorId}`;
+        record {|int donor_id;|}? donor = check database:dbClient->queryRow(donorQuery);
+        if donor is () {
+            return error("Donor not found");
+        }
+
+        // Get query parameters
+        string? latStr = req.getQueryParamValue("latitude");
+        string? lonStr = req.getQueryParamValue("longitude");
+        string? radStr = req.getQueryParamValue("radius");
+
+        if latStr is () || lonStr is () {
+            return error("Missing query parameters: latitude and longitude are required");
+        }
+
+        float|error latitude = float:fromString(latStr);
+        float|error longitude = float:fromString(lonStr);
+        float radius = radStr is () ? 20.0 : check float:fromString(radStr);
+
+        if latitude is error || longitude is error {
+            return error("Invalid query parameters: latitude and longitude must be valid numbers");
+        }
+        // if radius <= 0 {
+        //     return error("Invalid query parameter: radius must be a positive number");
+        // }
+
+        // Query hospitals with Haversine formula for distance calculation
+        sql:ParameterizedQuery query = `
+            SELECT h.hospital_id, h.hospital_name, h.hospital_type, h.hospital_address, 
+                   h.contact_number, h.district_id, d.district_name, h.latitude, h.longitude,
+                   (6371 * acos(cos(radians(${latitude})) * cos(radians(h.latitude)) * 
+                    cos(radians(h.longitude) - radians(${longitude})) + 
+                    sin(radians(${latitude})) * sin(radians(h.latitude)))) AS distance
+            FROM hospital h
+            JOIN district d ON h.district_id = d.district_id
+            WHERE h.latitude IS NOT NULL AND h.longitude IS NOT NULL
+            HAVING distance <= ${radius.toString()}
+            ORDER BY distance
+        `;
+        stream<Hospital, sql:Error?> resultStream = database:dbClient->query(query);
+        Hospital[] hospitals = [];
+        check resultStream.forEach(function(Hospital hospital) {
+            hospitals.push(hospital);
+        });
+        check resultStream.close();
+        io:println("Fetched ", hospitals.length(), " hospitals within ", radius, " km");
+        return hospitals;
     }
 }
 
-
-// Enhanced validateDonorToken function with debugging
 function validateDonorToken(http:Request req) returns AuthValidationResult|error {
     AuthValidationResult|error authResult = validateToken(req);
     if authResult is error {
@@ -542,13 +385,11 @@ function validateDonorToken(http:Request req) returns AuthValidationResult|error
         return authResult;
     }
     
-    // Debug: Print the extracted values
     io:println("validateDonorToken: Token is valid");
     io:println("validateDonorToken: Extracted role: '" + authResult.role + "'");
     io:println("validateDonorToken: Extracted userId: '" + authResult.userId + "'");
     io:println("validateDonorToken: Extracted email: '" + authResult.email + "'");
     
-    // Check if the user is a donor
     if authResult.role != "donor" {
         io:println("validateDonorToken: Role mismatch. Expected 'donor', got '" + authResult.role + "'");
         return {
@@ -564,7 +405,6 @@ function validateDonorToken(http:Request req) returns AuthValidationResult|error
     return authResult;
 }
 
-// Enhanced validateToken function with better debugging
 function validateToken(http:Request req) returns AuthValidationResult|error {
     http:Cookie[]? cookies = req.getCookies();
     string? token = ();
@@ -597,7 +437,6 @@ function validateToken(http:Request req) returns AuthValidationResult|error {
     string[] tokenParts = re:split(token, "\\.");
     io:println("validateToken: Token has " + tokenParts.length().toString() + " parts");
 
-    // Handle both signed (3 parts) and unsigned (2 parts) tokens
     if tokenParts.length() < 2 || tokenParts.length() > 3 {
         io:println("validateToken: Invalid token format - wrong number of parts");
         return {
@@ -755,233 +594,6 @@ function validateToken(http:Request req) returns AuthValidationResult|error {
         message: "Invalid payload format"
     };
 }
-
-// General token validation function
-// Fixed token validation function that handles both signed and unsigned tokens
-// function validateToken(http:Request req) returns AuthValidationResult|error {
-//     http:Cookie[]? cookies = req.getCookies();
-//     string? token = ();
-
-//     if cookies is http:Cookie[] {
-//         foreach http:Cookie cookie in cookies {
-//             if cookie.name == "auth_token" {
-//                 token = cookie.value;
-//                 break;
-//             }
-//         }
-//     }
-
-//     if token is () {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "No authentication token found"
-//         };
-//     }
-
-//     string[] tokenParts = re:split(token, "\\.");
-
-//     // Handle both signed (3 parts) and unsigned (2 parts) tokens
-//     if tokenParts.length() < 2 || tokenParts.length() > 3 {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token format"
-//         };
-//     }
-
-//     // Check if this is an unsigned token (alg: "none")
-//     string encodedHeader = tokenParts[0];
-//     byte[]|error headerBytes = arrays:fromBase64(encodedHeader);
-    
-//     if headerBytes is error {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token header encoding"
-//         };
-//     }
-
-//     string|error headerStr = string:fromBytes(headerBytes);
-//     if headerStr is error {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token header encoding"
-//         };
-//     }
-
-//     json|error headerJson = headerStr.fromJsonString();
-//     if headerJson is error {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token header JSON"
-//         };
-//     }
-
-//     // Check algorithm
-//     if headerJson is map<json> {
-//         json? algJson = headerJson?.alg;
-//         if algJson is string {
-//             string algorithm = <string>algJson;
-//             // For unsigned tokens (alg: "none"), we expect exactly 2 parts
-//             if algorithm == "none" && tokenParts.length() != 2 {
-//                 return {
-//                     isValid: false,
-//                     email: "",
-//                     role: "",
-//                     userId: "",
-//                     message: "Invalid unsigned token format"
-//                 };
-//             }
-//             // For signed tokens, we expect exactly 3 parts
-//             else if algorithm != "none" && tokenParts.length() != 3 {
-//                 return {
-//                     isValid: false,
-//                     email: "",
-//                     role: "",
-//                     userId: "",
-//                     message: "Invalid signed token format"
-//                 };
-//             }
-//         }
-//     }
-
-//     // Proceed with payload validation
-//     string encodedPayload = tokenParts[1];
-//     byte[]|error payloadBytes = arrays:fromBase64(encodedPayload);
-
-//     if payloadBytes is error {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token encoding"
-//         };
-//     }
-
-//     string|error payloadStr = string:fromBytes(payloadBytes);
-
-//     if payloadStr is error {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token payload encoding"
-//         };
-//     }
-
-//     json|error payloadJson = payloadStr.fromJsonString();
-
-//     if (payloadJson is error) {
-//         return {
-//             isValid: false,
-//             email: "",
-//             role: "",
-//             userId: "",
-//             message: "Invalid token payload JSON"
-//         };
-//     }
-
-//     if (payloadJson is map<json>) {
-//         json? issuerJson = payloadJson?.iss;
-//         json? expJson = payloadJson?.exp;
-//         json? subJson = payloadJson?.sub;
-
-//         if issuerJson is () || expJson is () || subJson is () {
-//             return {
-//                 isValid: false,
-//                 email: "",
-//                 role: "",
-//                 userId: "",
-//                 message: "Invalid token payload structure"
-//             };
-//         }
-
-//         if !(issuerJson is string) || !(expJson is decimal) || !(subJson is string) {
-//             return {
-//                 isValid: false,
-//                 email: "",
-//                 role: "",
-//                 userId: "",
-//                 message: "Invalid token payload structure"
-//             };
-//         }
-
-//         string issuer = <string>issuerJson;
-//         decimal exp = <decimal>expJson;
-//         string sub = <string>subJson;
-
-//         if issuer != "bloodlink-auth-service" {
-//             return {
-//                 isValid: false,
-//                 email: "",
-//                 role: "",
-//                 userId: "",
-//                 message: "Invalid issuer"
-//             };
-//         }
-
-//         decimal currentTime = <decimal>time:utcNow()[0];
-//         if exp < currentTime {
-//             return {
-//                 isValid: false,
-//                 email: "",
-//                 role: "",
-//                 userId: "",
-//                 message: "Token expired"
-//             };
-//         }
-
-//         json? customClaimsJson = payloadJson?.customClaims;
-
-//         if customClaimsJson is () || !(customClaimsJson is map<json>) {
-//             return {
-//                 isValid: false,
-//                 email: "",
-//                 role: "",
-//                 userId: "",
-//                 message: "Invalid custom claims structure"
-//             };
-//         }
-
-//         map<json> customClaims = <map<json>>customClaimsJson;
-//         json roleJson = customClaims["role"];
-//         json userIdJson = customClaims["userId"];
-
-//         string role = roleJson is string ? <string>roleJson : "";
-//         string userId = userIdJson is string ? <string>userIdJson : "";
-
-//         return {
-//             isValid: true,
-//             email: sub,
-//             role: role,
-//             userId: userId,
-//             message: "Token valid"
-//         };
-//     }
-
-//     return {
-//         isValid: false,
-//         email: "",
-//         role: "",
-//         userId: "",
-//         message: "Invalid payload format"
-//     };
-// }
 
 public function startDonorsService() returns error? {
     io:println("Donors service with authentication started on port: 9095");
