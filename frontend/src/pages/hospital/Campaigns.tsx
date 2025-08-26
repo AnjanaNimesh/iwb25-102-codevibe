@@ -3616,16 +3616,13 @@ import {
   Search,
   AlertCircle,
   Heart,
-  Users,
   Clock,
   Image as ImageIcon,
   X,
   CheckCircle,
   AlertTriangle,
-  RefreshCw,
   Eye,
   Filter,
-  CheckIcon,
   XIcon,
 } from "lucide-react";
 
@@ -4160,14 +4157,14 @@ const Campaigns = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button 
+              {/* <button 
                 onClick={() => fetchCampaigns()}
                 className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors"
                 disabled={isLoading}
               >
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
-              </button>
+              </button> */}
               <button
                 onClick={() => {
                   setShowAddForm(true);

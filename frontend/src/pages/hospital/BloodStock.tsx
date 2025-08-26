@@ -2152,7 +2152,6 @@ import {
   Edit2, 
   X, 
   CheckCircle, 
-  RefreshCwIcon,
   AlertTriangleIcon,
   XCircleIcon,
   CheckIcon,
@@ -2508,14 +2507,14 @@ const BloodStock = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <button 
+              {/* <button 
                 onClick={() => fetchBloodStock()}
                 className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors"
                 disabled={loading}
               >
                 <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
-              </button>
+              </button> */}
               <button
                 onClick={() => {
                   setShowAddForm(true);
