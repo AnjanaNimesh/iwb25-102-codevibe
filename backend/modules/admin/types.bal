@@ -84,3 +84,22 @@ public type updateHospitalUsers record {|
     string hospital_email;
     string hospital_name;
 |};
+
+public type profileDetails record {|
+    string admin_email;
+    string password_hash;
+|};
+
+// Record type for update profile request
+type UpdateProfileRequest record {
+    string new_email?;
+    string new_password?;
+    string confirm_password?;
+};
+
+// Record type for response
+type UpdateProfileResponse record {
+    string status;
+    string message;
+    string? updated_field?;
+};
