@@ -1264,7 +1264,6 @@ import {
   Droplet as DropletIcon,
   Heart as HeartIcon,
   Activity as ActivityIcon,
-  RefreshCw as RefreshCwIcon,
   AlertCircle,
   AlertTriangle as AlertTriangleIcon,
   X as XIcon,
@@ -1290,9 +1289,6 @@ interface BloodUnit {
   quantity: number
 }
 
-interface Hospital {
-  hospital_name: string
-}
 
 interface UserProfile {
   user_id: string
@@ -1399,10 +1395,6 @@ const HospitalDashboard = () => {
   }
 
   // Show confirmation modal
-  const showConfirmation = (type: string, title: string, message: string, action: () => void) => {
-    setConfirmAction({ type, title, message, action });
-    setIsConfirmModalOpen(true);
-  };
 
   // Handle confirmation
   const handleConfirm = () => {
@@ -1549,23 +1541,6 @@ const HospitalDashboard = () => {
   }, [userProfile, authError])
 
   // Manual refresh function
-  const handleRefresh = async () => {
-    setLoading(true)
-    try {
-      await fetchBloodStock()
-      showConfirmation(
-        "success",
-        "Data Refreshed",
-        "Blood stock data has been successfully updated.",
-        () => {}
-      );
-    } catch (error) {
-      console.error('Error refreshing blood stock:', error)
-      setError("Failed to refresh data. Please try again.")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   // Process data for charts and stats
   const totalUnits = bloodStock.reduce((sum, item) => sum + item.quantity, 0)
@@ -1645,14 +1620,14 @@ const HospitalDashboard = () => {
               </div>
             </div>
             <div className="text-right">
-              <button 
+              {/* <button 
                 onClick={handleRefresh}
                 className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors mb-2"
                 disabled={loading}
               >
                 <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
-              </button>
+              </button> */}
               <div className="text-sm text-gray-500">
                 Last updated: {lastUpdated || 'Never'}
               </div>
@@ -1809,7 +1784,7 @@ const HospitalDashboard = () => {
                         percentage > 5 ? `${blood_group} ${percentage}%` : ''
                       }
                     >
-                      {chartData.map((entry, index) => (
+                      {chartData.map((_entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
