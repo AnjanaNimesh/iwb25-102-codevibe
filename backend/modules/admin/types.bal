@@ -34,7 +34,7 @@ public type deleteHospital record {|
 public type addHospitalUsers record{|
     string hospital_email;
     string hospital_name;
-    string password_hash;
+    string password;
 |};
 
 public type viewHospitalUsers record {|
