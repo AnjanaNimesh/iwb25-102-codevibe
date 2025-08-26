@@ -1943,7 +1943,7 @@ service /dashboard/admin on database:dashboardListener{
     //     return true;
     // }
 
-        function validateAdminToken(http:Request req) returns boolean|error {
+    function validateAdminToken(http:Request req) returns boolean|error {
     http:Cookie[]? cookies = req.getCookies();
     string? token = ();
 
@@ -2160,6 +2160,282 @@ function debugToken(string token) returns error? {
     // }
 
     // ===== DONOR MANAGEMENT ENDPOINTS =====
+
+    function getEmailFromToken(http:Request req) returns string|error {
+    http:Cookie[]? cookies = req.getCookies();
+    string? token = ();
+
+    // Extract token from cookies
+    if cookies is http:Cookie[] {
+        foreach http:Cookie cookie in cookies {
+            if cookie.name == "auth_token" {
+                token = cookie.value;
+                break;
+            }
+        }
+    }
+
+    if token is () {
+        return error("No auth token found");
+    }
+
+    // Parse JWT token
+    string[] tokenParts = re:split(token, "\\.");
+    if tokenParts.length() != 3 {
+        return error("Invalid token format");
+    }
+
+    string encodedPayload = tokenParts[1];
+    byte[]|error payloadBytes = arrays:fromBase64(encodedPayload);
+
+    if payloadBytes is error {
+        return error("Invalid token encoding");
+    }
+
+    string|error payloadStr = string:fromBytes(payloadBytes);
+    if payloadStr is error {
+        return error("Invalid token payload encoding");
+    }
+
+    json|error payloadJson = payloadStr.fromJsonString();
+    if payloadJson is error {
+        return error("Invalid token payload JSON");
+    }
+
+    if !(payloadJson is map<json>) {
+        return error("Invalid payload format");
+    }
+
+    map<json> payload = <map<json>>payloadJson;
+
+    // Extract subject (email)
+    json? subJson = payload?.sub;
+    if subJson is () || !(subJson is string) {
+        return error("Invalid subject in token");
+    }
+    
+    return <string>subJson;
+}
+
+//profile endpoint 
+resource function get profile(http:Request req) returns profileDetails[]|http:Response|error {
+    // First validate admin token (existing function)
+    boolean|error isValidAdmin = self.validateAdminToken(req);
+    if isValidAdmin is error || !isValidAdmin {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "Access denied: Admin authentication required" 
+        });
+        response.statusCode = 403;
+        return response;
+    }
+
+    // Then extract email from token
+    string|error adminEmail = self.getEmailFromToken(req);
+    if adminEmail is error {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "Unable to extract email from token" 
+        });
+        response.statusCode = 500;
+        return response;
+    }
+
+    // Use the extracted email in the query
+    stream<profileDetails, sql:Error?> profileStream = database:dbClient->query(
+        `SELECT admin_email, password_hash
+         FROM admin
+         WHERE admin_email = ${adminEmail}`,
+        profileDetails
+    );
+
+    profileDetails[] profiles = [];
+    check profileStream.forEach(function(profileDetails profile) {
+        profiles.push(profile);
+    });
+
+    return profiles;
+}
+
+// POST method to update admin profile
+resource function post profile(http:Request req) returns UpdateProfileResponse|http:Response|error {
+    // First validate admin token
+    boolean|error isValidAdmin = self.validateAdminToken(req);
+    if isValidAdmin is error || !isValidAdmin {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "Access denied: Admin authentication required" 
+        });
+        response.statusCode = 403;
+        return response;
+    }
+
+    // Get current admin email from token
+    string|error currentAdminEmail = self.getEmailFromToken(req);
+    if currentAdminEmail is error {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "Unable to extract email from token" 
+        });
+        response.statusCode = 500;
+        return response;
+    }
+
+    // Parse request body
+    json|error requestBody = req.getJsonPayload();
+    if requestBody is error {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "Invalid JSON in request body" 
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    UpdateProfileRequest|error updateRequest = requestBody.fromJsonWithType(UpdateProfileRequest);
+    if updateRequest is error {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "Invalid request format" 
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    // Validate that at least one field is provided
+    if updateRequest.new_email is () && updateRequest.new_password is () {
+        http:Response response = new;
+        response.setJsonPayload({ 
+            status: "error", 
+            message: "At least one field (new_email or new_password) must be provided" 
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    string updatedFields = "";
+    
+    // Handle password update
+    if updateRequest.new_password is string {
+        string newPassword = <string>updateRequest.new_password;
+        
+        // Validate password is not empty
+        if newPassword.trim() == "" {
+            http:Response response = new;
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Password cannot be empty" 
+            });
+            response.statusCode = 400;
+            return response;
+        }
+
+        // Validate confirm password is provided
+        if updateRequest.confirm_password is () {
+            http:Response response = new;
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Confirm password is required when updating password" 
+            });
+            response.statusCode = 400;
+            return response;
+        }
+
+        string confirmPassword = <string>updateRequest.confirm_password;
+        
+        // Check if passwords match
+        if newPassword != confirmPassword {
+            http:Response response = new;
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Password and confirm password do not match" 
+            });
+            response.statusCode = 400;
+            return response;
+        }
+
+        // Validate password strength (optional - add your own rules)
+        if newPassword.length() < 8 {
+            http:Response response = new;
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Password must be at least 8 characters long" 
+            });
+            response.statusCode = 400;
+            return response;
+        }
+
+        // Hash the password using crypto:hashBcrypt
+        string hashedPassword = check crypto:hashBcrypt(newPassword, 12);
+
+        // Update password in database
+        sql:ExecutionResult updatePasswordResult = check database:dbClient->execute(
+            `UPDATE admin 
+             SET password_hash = ${hashedPassword}
+             WHERE admin_email = ${currentAdminEmail}`
+        );
+
+        updatedFields = updatedFields == "" ? "password" : updatedFields + ", password";
+    }
+
+    // Handle email update
+    if updateRequest.new_email is string {
+        string newEmail = <string>updateRequest.new_email;
+        
+        // Validate email is not empty and has basic email format
+        if newEmail.trim() == "" {
+            http:Response response = new;
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Email cannot be empty" 
+            });
+            response.statusCode = 400;
+            return response;
+        }
+
+        // Basic email validation (you might want to use a more robust validation)
+        if !self.isValidEmail(newEmail) {
+            http:Response response = new;
+            response.setJsonPayload({ 
+                status: "error", 
+                message: "Invalid email format" 
+            });
+            response.statusCode = 400;
+            return response;
+        }
+
+        // Since there's only one admin, no need to check for duplicate emails
+        // Just proceed with the update
+
+        // Update email in database
+        sql:ExecutionResult updateEmailResult = check database:dbClient->execute(
+            `UPDATE admin 
+             SET admin_email = ${newEmail}
+             WHERE admin_email = ${currentAdminEmail}`
+        );
+
+        updatedFields = updatedFields == "" ? "email" : updatedFields + ", email";
+    }
+
+    return {
+        status: "success",
+        message: "Profile updated successfully",
+        updated_field: updatedFields
+    };
+}
+
+function isValidEmail(string email) returns boolean {
+    // Basic email regex pattern
+    string emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    return re:matches(email, emailPattern);
+};
+
 
     // View all donors - ADMIN ONLY
     resource function get donors(http:Request req) returns donorDetails[]|http:Response|error {
