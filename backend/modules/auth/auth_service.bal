@@ -1122,7 +1122,7 @@ service /auth on database:authListener {
 
         string[] tokenParts = re:split(token, "\\.");
 
-        if tokenParts.length() != 3 {
+        if tokenParts.length() < 2 || tokenParts.length() > 3 {
             response.setJsonPayload({ status: "error", message: "Invalid token format" });
             response.statusCode = 401;
             return response;
@@ -1613,6 +1613,9 @@ function generateJWTToken(string email, string role, string userId) returns stri
     return encodedHeader + "." + encodedPayload + ".signature";
 }
 
+
+
+
 // Legacy JWT generation
 function generateJWTTokenLegacy(string hospital_email) returns string|error {
     return generateJWTToken(hospital_email, "hospital_user", hospital_email);
@@ -1621,3 +1624,614 @@ function generateJWTTokenLegacy(string hospital_email) returns string|error {
 public function startAuthService() returns error? {
     io:println("Multi-role auth service started on port 9093");
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import backend.database;
+// import ballerina/http;
+// import ballerina/io;
+// import ballerina/sql;
+// import ballerina/crypto;
+// import ballerina/time;
+// import ballerina/jwt;
+// import ballerina/uuid;
+
+// // JWT Configuration
+// const string JWT_SECRET = "bloodlink_super_secret_key_2024_change_in_production";
+// const string JWT_ISSUER = "bloodlink-auth-service";
+// const string[] JWT_AUDIENCE = ["bloodlink-client"];
+// const int TOKEN_EXPIRY_TIME = 3600; // 1 hour
+
+// @http:ServiceConfig {
+//     cors: {
+//         allowOrigins: ["http://localhost:5173", "*"],
+//         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//         allowHeaders: ["Content-Type", "Authorization"],
+//         allowCredentials: true
+//     }
+// }
+
+// service /auth on database:authListener {
+
+//     // Universal login endpoint for all user types
+//     resource function post login(http:Request req) returns http:Response|error {
+//         json payload = check req.getJsonPayload();
+//         UniversalLoginRequest loginData = check payload.cloneWithType(UniversalLoginRequest);
+
+//         io:println("=== LOGIN REQUEST ===");
+//         io:println("Email: ", loginData.email);
+//         io:println("Password length: ", loginData.password.length());
+
+//         AuthResult|error authResult = authenticateUser(loginData.email, loginData.password);
+//         http:Response response = new;
+
+//         if authResult is error {
+//             io:println("Authentication error: ", authResult.message());
+//             response.setJsonPayload({ status: "error", message: "Authentication failed" });
+//             response.statusCode = 500;
+//             return response;
+//         }
+
+//         if authResult.isAuthenticated {
+//             io:println("Authentication successful for: ", authResult.email, " as ", authResult.role);
+            
+//             string|error token = generateSecureJWTToken(authResult.email, authResult.role, authResult.userId, authResult.name);
+
+//             if token is error {
+//                 io:println("JWT token generation error: ", token.message());
+//                 response.setJsonPayload({ status: "error", message: "Token generation failed" });
+//                 response.statusCode = 500;
+//                 return response;
+//             }
+
+//             // Set secure cookie with proper settings
+//             http:Cookie authCookie = new("auth_token", token,
+//                 path = "/", 
+//                 maxAge = TOKEN_EXPIRY_TIME, 
+//                 httpOnly = true, 
+//                 secure = false // Set to true in production with HTTPS
+//             );
+//             response.addCookie(authCookie);
+
+//             io:println("Cookie set successfully for role: ", authResult.role);
+
+//             response.setJsonPayload({
+//                 status: "success",
+//                 message: "Login successful",
+//                 user: {
+//                     email: authResult.email,
+//                     role: authResult.role,
+//                     userId: authResult.userId,
+//                     name: authResult.name
+//                 }
+//             });
+//             response.statusCode = 200;
+//             return response;
+
+//         } else {
+//             io:println("Authentication failed - Invalid credentials");
+//             response.setJsonPayload({ status: "error", message: "Invalid email or password" });
+//             response.statusCode = 401;
+//             return response;
+//         }
+//     }
+   
+//     // Legacy endpoint for hospital users only
+//     resource function post checkHospitalUser(http:Request req) returns http:Response|error {
+//         json payload = check req.getJsonPayload();
+//         LoginRequest loginData = check payload.cloneWithType(LoginRequest);
+
+//         io:println("=== LEGACY HOSPITAL LOGIN ===");
+//         io:println("Hospital Email: ", loginData.hospital_email);
+
+//         sql:ParameterizedQuery query =
+//             `SELECT hospital_email, password_hash
+//              FROM hospital_user
+//              WHERE hospital_email = ${loginData.hospital_email}`;
+
+//         record {|string hospital_email; string password_hash;|}? cred =
+//             check database:dbClient->queryRow(query);
+
+//         http:Response response = new;
+
+//         if cred is () {
+//             io:println("No hospital user found with email: ", loginData.hospital_email);
+//             response.setJsonPayload({ status: "error", message: "Invalid email or password" });
+//             response.statusCode = 401;
+//             return response;
+//         }
+
+//         boolean|crypto:Error isValid = crypto:verifyBcrypt(loginData.password, cred.password_hash);
+
+//         if isValid is crypto:Error {
+//             io:println("Password verification error: ", isValid.message());
+//             response.setJsonPayload({ status: "error", message: "Password verification failed" });
+//             response.statusCode = 500;
+//             return response;
+//         }
+
+//         if isValid {
+//             io:println("Legacy hospital authentication successful");
+//             string|error token = generateSecureJWTToken(cred.hospital_email, "hospital_user", cred.hospital_email, "Hospital User");
+
+//             if token is error {
+//                 io:println("JWT token generation error: ", token.message());
+//                 response.setJsonPayload({ status: "error", message: "Token generation failed" });
+//                 response.statusCode = 500;
+//                 return response;
+//             }
+
+//             http:Cookie authCookie = new("auth_token", token,
+//                 path = "/", 
+//                 maxAge = TOKEN_EXPIRY_TIME, 
+//                 httpOnly = true, 
+//                 secure = false
+//             );
+//             response.addCookie(authCookie);
+
+//             response.setJsonPayload({
+//                 status: "success",
+//                 message: "Login successful",
+//                 hospital_email: cred.hospital_email
+//             });
+//             response.statusCode = 200;
+//             return response;
+
+//         } else {
+//             io:println("Invalid password for hospital user");
+//             response.setJsonPayload({ status: "error", message: "Invalid email or password" });
+//             response.statusCode = 401;
+//             return response;
+//         }
+//     }
+
+//     // Enhanced token verification endpoint
+//     resource function get verify(http:Request req) returns http:Response {
+//         http:Response response = new;
+
+//         io:println("=== TOKEN VERIFICATION ===");
+
+//         // Try to get token from cookie
+//         string? token = getTokenFromCookie(req);
+        
+//         if token is () {
+//             // Try to get token from Authorization header as fallback
+//             string|http:HeaderNotFoundError authHeader = req.getHeader("Authorization");
+//             if authHeader is string && authHeader.startsWith("Bearer ") {
+//                 token = authHeader.substring(7);
+//                 io:println("Found token in Authorization header");
+//             } else {
+//                 io:println("No token found in cookies or Authorization header");
+//                 response.setJsonPayload({ status: "error", message: "No token found" });
+//                 response.statusCode = 401;
+//                 return response;
+//             }
+//         }
+
+//         // Validate JWT token using Ballerina's JWT module
+//         jwt:Payload|jwt:Error result = validateJWTToken(token);
+        
+//         if result is jwt:Error {
+//             io:println("JWT validation failed: ", result.message());
+//             response.setJsonPayload({ status: "error", message: "Invalid or expired token" });
+//             response.statusCode = 401;
+//             return response;
+//         }
+
+//         jwt:Payload payload = result;
+        
+//         // Extract custom claims safely - access customClaims directly without optional operator
+//         map<json>? customClaims = payload.customClaims;
+//         if customClaims is () {
+//             io:println("No custom claims found in token");
+//             response.setJsonPayload({ status: "error", message: "Invalid token structure - missing custom claims" });
+//             response.statusCode = 401;
+//             return response;
+//         }
+
+//         // Extract user information from custom claims
+//         json? roleJson = customClaims["role"];
+//         json? userIdJson = customClaims["userId"];
+//         json? nameJson = customClaims["name"];
+        
+//         string role = roleJson is string ? roleJson : "";
+//         string userId = userIdJson is string ? userIdJson : "";
+//         string name = nameJson is string ? nameJson : "";
+//         string email = payload.sub ?: "";
+
+//         if role == "" || userId == "" || email == "" {
+//             io:println("Missing required user information in token claims");
+//             response.setJsonPayload({ status: "error", message: "Invalid token claims" });
+//             response.statusCode = 401;
+//             return response;
+//         }
+
+//         io:println("Token verification successful - Email: " + email + ", Role: " + role + ", UserId: " + userId);
+
+//         response.setJsonPayload({
+//             status: "success",
+//             message: "Token valid",
+//             user: {
+//                 email: email,
+//                 role: role,
+//                 userId: userId,
+//                 name: name,
+//                 exp: payload.exp
+//             }
+//         });
+//         response.statusCode = 200;
+//         return response;
+//     }
+
+//     // Logout endpoint
+//     resource function post logout() returns http:Response {
+//         http:Response response = new;
+        
+//         io:println("=== LOGOUT REQUEST ===");
+        
+//         // Clear the auth_token cookie
+//         http:Cookie expiredCookie = new("auth_token", "",
+//             path = "/",
+//             maxAge = 0,
+//             httpOnly = true,
+//             secure = false
+//         );
+//         response.addCookie(expiredCookie);
+        
+//         io:println("Auth token cookie cleared");
+        
+//         response.setJsonPayload({
+//             status: "success",
+//             message: "Logged out successfully"
+//         });
+//         response.statusCode = 200;
+//         return response;
+//     }
+// }
+
+// // Helper function to extract token from cookie
+// function getTokenFromCookie(http:Request req) returns string? {
+//     http:Cookie[]? cookies = req.getCookies();
+    
+//     if cookies is http:Cookie[] {
+//         io:println("Found " + cookies.length().toString() + " cookies");
+//         foreach http:Cookie cookie in cookies {
+//             if cookie.name == "auth_token" {
+//                 io:println("Found auth_token cookie with value length: " + cookie.value.length().toString());
+//                 return cookie.value;
+//             }
+//         }
+//     } else {
+//         io:println("No cookies found in request");
+//     }
+    
+//     return ();
+// }
+
+// // Enhanced universal authentication with detailed logging
+// function authenticateUser(string email, string password) returns AuthResult|error {
+//     io:println("=== Universal Authentication Started for: " + email + " ===");
+    
+//     io:println("Step 1: Trying donor authentication...");
+//     AuthResult|error donorAuth = authenticateDonor(email, password);
+//     if donorAuth is AuthResult && donorAuth.isAuthenticated {
+//         io:println("✓ Donor authentication successful");
+//         return donorAuth;
+//     } else if donorAuth is error {
+//         io:println("✗ Donor authentication error: " + donorAuth.message());
+//     } else {
+//         io:println("✗ Donor authentication failed");
+//     }
+
+//     io:println("Step 2: Trying admin authentication...");
+//     AuthResult|error adminAuth = authenticateAdmin(email, password);
+//     if adminAuth is AuthResult && adminAuth.isAuthenticated {
+//         io:println("✓ Admin authentication successful");
+//         return adminAuth;
+//     } else if adminAuth is error {
+//         io:println("✗ Admin authentication error: " + adminAuth.message());
+//     } else {
+//         io:println("✗ Admin authentication failed");
+//     }
+
+//     io:println("Step 3: Trying hospital user authentication...");
+//     AuthResult|error hospitalAuth = authenticateHospitalUser(email, password);
+//     if hospitalAuth is AuthResult && hospitalAuth.isAuthenticated {
+//         io:println("✓ Hospital user authentication successful");
+//         return hospitalAuth;
+//     } else if hospitalAuth is error {
+//         io:println("✗ Hospital user authentication error: " + hospitalAuth.message());
+//     } else {
+//         io:println("✗ Hospital user authentication failed");
+//     }
+
+//     io:println("=== All authentication methods failed ===");
+//     return {
+//         isAuthenticated: false,
+//         email: "",
+//         role: "",
+//         userId: "",
+//         name: ""
+//     };
+// }
+
+// // Enhanced donor authentication
+// function authenticateDonor(string email, string password) returns AuthResult|error {
+//     io:println("Attempting donor authentication for: " + email);
+    
+//     sql:ParameterizedQuery query =
+//         `SELECT donor_id, donor_name, email, password_hash, status
+//          FROM donor
+//          WHERE email = ${email}`;
+
+//     record {|int donor_id; string donor_name; string email; string password_hash; string status;|}? donor =
+//         check database:dbClient->queryRow(query);
+
+//     if donor is () {
+//         io:println("No donor found with email: " + email);
+//         return {
+//             isAuthenticated: false,
+//             email: "",
+//             role: "",
+//             userId: "",
+//             name: ""
+//         };
+//     }
+
+//     io:println("Donor found: " + donor.email + " with status: " + donor.status);
+    
+//     if donor.status != "active" {
+//         io:println("Donor status is not active: " + donor.status);
+//         return {
+//             isAuthenticated: false,
+//             email: "",
+//             role: "",
+//             userId: "",
+//             name: ""
+//         };
+//     }
+
+//     boolean|crypto:Error isValid = crypto:verifyBcrypt(password, donor.password_hash);
+
+//     if isValid is crypto:Error {
+//         io:println("Password verification error for donor: " + isValid.message());
+//         return error("Password verification failed for donor");
+//     }
+
+//     if isValid {
+//         io:println("Donor authentication successful");
+//         return {
+//             isAuthenticated: true,
+//             email: donor.email,
+//             role: "donor",
+//             userId: donor.donor_id.toString(),
+//             name: donor.donor_name
+//         };
+//     }
+
+//     return {
+//         isAuthenticated: false,
+//         email: "",
+//         role: "",
+//         userId: "",
+//         name: ""
+//     };
+// }
+
+// // Enhanced admin authentication
+// function authenticateAdmin(string email, string password) returns AuthResult|error {
+//     io:println("Attempting admin authentication for: " + email);
+    
+//     sql:ParameterizedQuery query =
+//         `SELECT admin_email, password_hash, status
+//          FROM admin
+//          WHERE admin_email = ${email}`;
+
+//     record {|string admin_email; string password_hash; string status;|}? admin =
+//         check database:dbClient->queryRow(query);
+
+//     if admin is () {
+//         io:println("No admin found with email: " + email);
+//         return {
+//             isAuthenticated: false,
+//             email: "",
+//             role: "",
+//             userId: "",
+//             name: ""
+//         };
+//     }
+
+//     io:println("Admin found: " + admin.admin_email + " with status: " + admin.status);
+
+//     if admin.status != "active" {
+//         io:println("Admin status is not active: " + admin.status);
+//         return {
+//             isAuthenticated: false,
+//             email: "",
+//             role: "",
+//             userId: "",
+//             name: ""
+//         };
+//     }
+
+//     boolean|crypto:Error isValid = crypto:verifyBcrypt(password, admin.password_hash);
+
+//     if isValid is crypto:Error {
+//         io:println("Password verification error for admin: " + isValid.message());
+//         return error("Password verification failed for admin");
+//     }
+
+//     if isValid {
+//         io:println("Admin authentication successful");
+//         return {
+//             isAuthenticated: true,
+//             email: admin.admin_email,
+//             role: "admin",
+//             userId: admin.admin_email,
+//             name: "Administrator"
+//         };
+//     }
+
+//     return {
+//         isAuthenticated: false,
+//         email: "",
+//         role: "",
+//         userId: "",
+//         name: ""
+//     };
+// }
+
+// // Enhanced hospital user authentication
+// function authenticateHospitalUser(string email, string password) returns AuthResult|error {
+//     io:println("Attempting hospital user authentication for: " + email);
+    
+//     sql:ParameterizedQuery query =
+//         `SELECT hu.hospital_email, hu.password_hash, hu.hospital_id, h.hospital_name, hu.status
+//          FROM hospital_user hu
+//          JOIN hospital h ON hu.hospital_id = h.hospital_id
+//          WHERE hu.hospital_email = ${email}`;
+
+//     record {|string hospital_email; string password_hash; int hospital_id; string hospital_name; string status;|}? hospitalUser =
+//         check database:dbClient->queryRow(query);
+
+//     if hospitalUser is () {
+//         io:println("No hospital user found with email: " + email);
+//         return {
+//             isAuthenticated: false,
+//             email: "",
+//             role: "",
+//             userId: "",
+//             name: ""
+//         };
+//     }
+
+//     io:println("Hospital user found: " + hospitalUser.hospital_email + " with status: " + hospitalUser.status);
+    
+//     if hospitalUser.status != "active" {
+//         io:println("Hospital user status is not active: " + hospitalUser.status);
+//         return {
+//             isAuthenticated: false,
+//             email: "",
+//             role: "",
+//             userId: "",
+//             name: ""
+//         };
+//     }
+
+//     boolean|crypto:Error isValid = crypto:verifyBcrypt(password, hospitalUser.password_hash);
+
+//     if isValid is crypto:Error {
+//         io:println("Password verification error for hospital user: " + isValid.message());
+//         return error("Password verification failed for hospital user");
+//     }
+
+//     if isValid {
+//         io:println("Hospital user authentication successful");
+//         return {
+//             isAuthenticated: true,
+//             email: hospitalUser.hospital_email,
+//             role: "hospital_user",
+//             userId: hospitalUser.hospital_id.toString(),
+//             name: hospitalUser.hospital_name
+//         };
+//     }
+
+//     return {
+//         isAuthenticated: false,
+//         email: "",
+//         role: "",
+//         userId: "",
+//         name: ""
+//     };
+// }
+
+// // Secure JWT token generation using Ballerina's JWT module
+// function generateSecureJWTToken(string email, string role, string userId, string name) returns string|error {
+//     int currentTime = <int>time:utcNow()[0];
+//     int expTime = currentTime + TOKEN_EXPIRY_TIME;
+    
+//     // Create JWT payload with standard and custom claims
+//     jwt:Payload jwtPayload = {
+//         iss: JWT_ISSUER,
+//         aud: JWT_AUDIENCE,
+//         sub: email,
+//         exp: expTime,
+//         iat: currentTime,
+//         jti: uuid:createType1AsString(), // Add unique token ID
+//         customClaims: {
+//             "role": role,
+//             "email": email,
+//             "userId": userId,
+//             "name": name
+//         }
+//     };
+
+//     io:println("Generating secure JWT for role: " + role + ", userId: " + userId);
+
+//     // For development, use HMAC-based signing (simpler)
+//     jwt:IssuerConfig simpleIssuerConfig = {
+//         username: email,
+//         issuer: JWT_ISSUER,
+//         audience: JWT_AUDIENCE,
+//         expTime: <decimal>TOKEN_EXPIRY_TIME,
+//         signatureConfig: {
+//             config: JWT_SECRET
+//         }
+//     };
+
+//     // Issue the token
+//     string|jwt:Error jwtToken = jwt:issue(jwtPayload, simpleIssuerConfig);
+    
+//     if jwtToken is jwt:Error {
+//         io:println("JWT token generation failed: " + jwtToken.message());
+//         return error("Failed to generate JWT token: " + jwtToken.message());
+//     }
+
+//     io:println("JWT token generated successfully with length: " + jwtToken.length().toString());
+//     return jwtToken;
+// }
+
+// // Secure JWT token validation using Ballerina's JWT module
+// function validateJWTToken(string token) returns jwt:Payload|jwt:Error {
+//     io:println("Validating JWT token...");
+    
+//     // Configure JWT validator
+//     jwt:ValidatorConfig validatorConfig = {
+//         issuer: JWT_ISSUER,
+//         audience: JWT_AUDIENCE,
+//         signatureConfig: {
+//             config: JWT_SECRET
+//         }
+//     };
+
+//     // Validate the token
+//     jwt:Payload|jwt:Error result = jwt:validate(token, validatorConfig);
+    
+//     if result is jwt:Error {
+//         io:println("JWT validation failed: " + result.message());
+//         return result;
+//     }
+
+//     jwt:Payload payload = result;
+//     io:println("JWT validation successful for subject: " + (payload.sub ?: "unknown"));
+//     return payload;
+// }
+
+// public function startAuthService() returns error? {
+//     io:println("Secure multi-role auth service started on port 9093");
+// }
