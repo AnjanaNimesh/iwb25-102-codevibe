@@ -1795,7 +1795,6 @@ import {
   CheckIcon,
   AlertTriangleIcon,
   FilterIcon,
-  RefreshCwIcon,
   HeartIcon,
   EditIcon,
 } from "lucide-react";
@@ -2258,14 +2257,14 @@ const Donors = () => {
                 <p className="text-gray-600">Manage blood donations and certificates</p>
               </div>
             </div>
-            <button 
+            {/* <button 
               onClick={() => fetchDonations()}
               className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors"
               disabled={loading}
             >
               <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
-            </button>
+            </button> */}
           </div>
         </div>
 
