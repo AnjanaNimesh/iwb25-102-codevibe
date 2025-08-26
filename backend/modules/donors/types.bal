@@ -1,3 +1,4 @@
+
 // Hospital record representing a hospital from the database
 public type Hospital record {|
     int hospital_id;
@@ -39,4 +40,37 @@ public type DonationHistory record {|
     string donation_date;
     string location;
     string donation_type;
+|};
+
+public type DonationRequest record {|
+    int donation_id;
+    int donor_id;
+    int hospital_id;
+    string donate_status;
+|};
+
+
+// public type District record {|
+//     int district_id;
+//     string district_name;
+// |};
+
+
+
+
+// Data types for donor signup
+type DonorSignupRequest record {|
+    string donor_name;
+    string email;
+    string phone_number;
+    string password;
+    string district_name;
+    string blood_group;
+    string gender;
+    string? last_donation_date;
+|};
+
+type District record {|
+    int district_id;
+    string district_name;
 |};
