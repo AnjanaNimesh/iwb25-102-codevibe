@@ -37,9 +37,6 @@
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState<string | null>(null);
 
-//   // Hardcoded donor_id for demo (replace with auth context in real app)
-//   const donorId = 1;
-
 //   // Fetch donor details and donation history
 //   useEffect(() => {
 //     const fetchData = async () => {
@@ -47,18 +44,28 @@
 //         setLoading(true);
 //         // Fetch donor details
 //         const donorResponse = await axios.get<Donor>(
-//           `http://localhost:9095/donors/${donorId}`
+//           `http://localhost:9095/donors/profile`,
+//           { withCredentials: true }
 //         );
 //         setUserData(donorResponse.data);
 
 //         // Fetch donation history
 //         const historyResponse = await axios.get<DonationHistory[]>(
-//           `http://localhost:9095/donors/${donorId}/history`
+//           `http://localhost:9095/donors/history`,
+//           { withCredentials: true }
 //         );
 //         setDonations(historyResponse.data);
-//       } catch (err) {
-//         setError("Failed to load profile data. Please try again.");
-//         console.error("Error fetching data:", err);
+//       } catch (err: any) {
+//         if (
+//           err.response?.status === 500 &&
+//           err.response?.data?.message.includes("Authentication required")
+//         ) {
+//           // Redirect to login page (adjust URL as needed)
+//           window.location.href = "/login";
+//         } else {
+//           setError("Failed to load profile data. Please try again.");
+//           console.error("Error fetching data:", err);
+//         }
 //       } finally {
 //         setLoading(false);
 //       }
@@ -68,26 +75,49 @@
 
 //   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 //     const { name, value } = e.target;
-//     setUserData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }));
+//     // Ensure name is a valid key of EditableDonorFields
+//     if (
+//       [
+//         "donor_name",
+//         "email",
+//         "phone_number",
+//         "district_name",
+//         "blood_group",
+//       ].includes(name)
+//     ) {
+//       setUserData((prev) => ({
+//         ...prev,
+//         [name]: value,
+//       }));
+//     }
 //   };
 
 //   const handleSaveChanges = async () => {
 //     try {
 //       // Update donor details in the backend
-//       await axios.put(`http://localhost:9095/donors/${donorId}`, {
-//         donor_name: userData.donor_name,
-//         email: userData.email,
-//         phone_number: userData.phone_number,
-//         district_name: userData.district_name,
-//         blood_group: userData.blood_group,
-//       });
+//       await axios.put(
+//         `http://localhost:9095/donors/profile`,
+//         {
+//           donor_name: userData.donor_name,
+//           email: userData.email,
+//           phone_number: userData.phone_number,
+//           district_name: userData.district_name,
+//           blood_group: userData.blood_group,
+//         },
+//         { withCredentials: true }
+//       );
 //       setIsEditing(false);
-//     } catch (err) {
-//       setError("Failed to save changes. Please try again.");
-//       console.error("Error saving changes:", err);
+//     } catch (err: any) {
+//       if (
+//         err.response?.status === 500 &&
+//         err.response?.data?.message.includes("Authentication required")
+//       ) {
+//         // Redirect to login page (adjust URL as needed)
+//         window.location.href = "/login";
+//       } else {
+//         setError("Failed to save changes. Please try again.");
+//         console.error("Error saving changes:", err);
+//       }
 //     }
 //   };
 
@@ -226,14 +256,19 @@
 //                   )}
 //                 </div>
 //                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                   {[
-//                     { key: "donor_name", label: "Name" },
-//                     { key: "email", label: "Email" },
-//                     { key: "phone_number", label: "Phone Number" },
-//                     { key: "district_name", label: "District" },
-//                     { key: "blood_group", label: "Blood Type" },
-//                     { key: "last_donation_date", label: "Last Donation Date" },
-//                   ].map(({ key, label }) => (
+//                   {(
+//                     [
+//                       { key: "donor_name", label: "Name" },
+//                       { key: "email", label: "Email" },
+//                       { key: "phone_number", label: "Phone Number" },
+//                       { key: "district_name", label: "District" },
+//                       { key: "blood_group", label: "Blood Type" },
+//                       {
+//                         key: "last_donation_date",
+//                         label: "Last Donation Date",
+//                       },
+//                     ] as const
+//                   ).map(({ key, label }) => (
 //                     <div key={key} className="mb-4">
 //                       <label className="block text-sm font-medium text-gray-700 mb-1">
 //                         {label}
@@ -323,7 +358,6 @@ import React, { useState, useEffect } from "react";
 import { AwardIcon, PencilIcon, CheckIcon, XIcon } from "lucide-react";
 import axios from "axios";
 
-// Define types for donor and donation history
 interface Donor {
   donor_id: number;
   donor_name: string;
@@ -332,6 +366,7 @@ interface Donor {
   district_name: string;
   blood_group: string;
   last_donation_date?: string;
+  gender?: string;
 }
 
 interface DonationHistory {
@@ -353,33 +388,37 @@ export const ProfilePage: React.FC = () => {
     phone_number: "",
     district_name: "",
     blood_group: "",
+    gender: "",
   });
   const [donations, setDonations] = useState<DonationHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Hardcoded donor_id for demo (replace with auth context in real app)
-  const donorId = 1;
-
-  // Fetch donor details and donation history
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch donor details
         const donorResponse = await axios.get<Donor>(
-          `http://localhost:9095/donors/${donorId}`
+          `http://localhost:9095/donors/profile`,
+          { withCredentials: true }
         );
         setUserData(donorResponse.data);
 
-        // Fetch donation history
         const historyResponse = await axios.get<DonationHistory[]>(
-          `http://localhost:9095/donors/${donorId}/history`
+          `http://localhost:9095/donors/history`,
+          { withCredentials: true }
         );
         setDonations(historyResponse.data);
-      } catch (err) {
-        setError("Failed to load profile data. Please try again.");
-        console.error("Error fetching data:", err);
+      } catch (err: any) {
+        if (
+          err.response?.status === 500 &&
+          err.response?.data?.message.includes("Authentication required")
+        ) {
+          window.location.href = "/login";
+        } else {
+          setError("Failed to load profile data. Please try again.");
+          console.error("Error fetching data:", err);
+        }
       } finally {
         setLoading(false);
       }
@@ -387,9 +426,10 @@ export const ProfilePage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
-    // Ensure name is a valid key of EditableDonorFields
     if (
       [
         "donor_name",
@@ -397,6 +437,7 @@ export const ProfilePage: React.FC = () => {
         "phone_number",
         "district_name",
         "blood_group",
+        "gender",
       ].includes(name)
     ) {
       setUserData((prev) => ({
@@ -408,18 +449,29 @@ export const ProfilePage: React.FC = () => {
 
   const handleSaveChanges = async () => {
     try {
-      // Update donor details in the backend
-      await axios.put(`http://localhost:9095/donors/${donorId}`, {
-        donor_name: userData.donor_name,
-        email: userData.email,
-        phone_number: userData.phone_number,
-        district_name: userData.district_name,
-        blood_group: userData.blood_group,
-      });
+      await axios.put(
+        `http://localhost:9095/donors/profile`,
+        {
+          donor_name: userData.donor_name,
+          email: userData.email,
+          phone_number: userData.phone_number,
+          district_name: userData.district_name,
+          blood_group: userData.blood_group,
+          gender: userData.gender,
+        },
+        { withCredentials: true }
+      );
       setIsEditing(false);
-    } catch (err) {
-      setError("Failed to save changes. Please try again.");
-      console.error("Error saving changes:", err);
+    } catch (err: any) {
+      if (
+        err.response?.status === 500 &&
+        err.response?.data?.message.includes("Authentication required")
+      ) {
+        window.location.href = "/login";
+      } else {
+        setError("Failed to save changes. Please try again.");
+        console.error("Error saving changes:", err);
+      }
     }
   };
 
@@ -440,7 +492,6 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  // Compute badges client-side
   const getBadges = (donation: DonationHistory, index: number) => {
     const badges: string[] = [];
     if (index === donations.length - 1) badges.push("First Time");
@@ -493,7 +544,8 @@ export const ProfilePage: React.FC = () => {
               <div>
                 <h1 className="text-3xl font-bold">{userData.donor_name}</h1>
                 <p className="opacity-80">
-                  Blood Type: {userData.blood_group} • Total Donations:{" "}
+                  Blood Type: {userData.blood_group} • Gender:{" "}
+                  {userData.gender || "N/A"} • Total Donations:{" "}
                   {donations.length}
                 </p>
               </div>
@@ -565,6 +617,7 @@ export const ProfilePage: React.FC = () => {
                       { key: "phone_number", label: "Phone Number" },
                       { key: "district_name", label: "District" },
                       { key: "blood_group", label: "Blood Type" },
+                      { key: "gender", label: "Gender" },
                       {
                         key: "last_donation_date",
                         label: "Last Donation Date",
@@ -576,13 +629,40 @@ export const ProfilePage: React.FC = () => {
                         {label}
                       </label>
                       {isEditing && key !== "last_donation_date" ? (
-                        <input
-                          type="text"
-                          name={key}
-                          value={userData[key] || ""}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#B02629] focus:border-transparent"
-                        />
+                        key === "gender" ? (
+                          <div className="flex space-x-4">
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="gender"
+                                value="male"
+                                checked={userData.gender === "male"}
+                                onChange={handleInputChange}
+                                className="mr-2 h-5 w-5 text-[#B02629] focus:ring-[#B02629]"
+                              />
+                              Male
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="gender"
+                                value="female"
+                                checked={userData.gender === "female"}
+                                onChange={handleInputChange}
+                                className="mr-2 h-5 w-5 text-[#B02629] focus:ring-[#B02629]"
+                              />
+                              Female
+                            </label>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            name={key}
+                            value={userData[key] || ""}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#B02629] focus:border-transparent"
+                          />
+                        )
                       ) : (
                         <p className="text-gray-900">
                           {userData[key] || "N/A"}
