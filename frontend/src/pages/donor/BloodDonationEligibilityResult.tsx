@@ -882,42 +882,130 @@ export const BloodDonationEligibilityResult: React.FC = () => {
   const defaultCenter: LatLngExpression = [6.927079, 79.861244];
 
   // Handle Confirm Donation button click
-  const handleConfirmDonation = async (center: DonationCenter) => {
-    if (pendingHospitals.includes(center.hospital_id)) {
-      alert("You have already requested to donate at this hospital.");
-      return;
-    }
+  // const handleConfirmDonation = async (center: DonationCenter) => {
+  //   if (pendingHospitals.includes(center.hospital_id)) {
+  //     alert("You have already requested to donate at this hospital.");
+  //     return;
+  //   }
 
-    try {
-      console.log("Confirm Donation clicked", { donorId: id, center });
-      const response = await axios.post(
-        `http://localhost:9095/donors/donation`,
-        {
-          donorId: id,
-          hospitalId: center.hospital_id,
+  //   try {
+  //     console.log("Confirm Donation clicked", { donorId: id, center });
+  //     const response = await axios.post(
+  //       `http://localhost:9095/donors/donation`,
+  //       {
+  //         donorId: id,
+  //         hospitalId: center.hospital_id,
+  //       },
+  //       {
+  //         withCredentials: true,
+  //       }
+  //     );
+  //     console.log("Donation creation response:", response.data);
+  //     alert(
+  //       `Thank you for choosing to donate at ${center.hospital_name}! Your donation request has been recorded. Please contact the center to schedule your appointment.`
+  //     );
+  //     setDonationError(null);
+  //     setPendingHospitals([...pendingHospitals, center.hospital_id]);
+  //   } catch (err: any) {
+  //     let errorMessage = "Failed to record donation.";
+  //     if (err.response) {
+  //       errorMessage = err.response.data?.message || err.message;
+  //     } else if (err.request) {
+  //       errorMessage = "Network error: Unable to reach server.";
+  //     }
+  //     setDonationError(errorMessage);
+  //     console.error("Error recording donation:", err);
+  //     alert(`Error: ${errorMessage}`);
+  //   }
+  // };
+
+  // Improved handleConfirmDonation function for your React component
+
+const handleConfirmDonation = async (center: DonationCenter) => {
+  if (pendingHospitals.includes(center.hospital_id)) {
+    alert("You have already requested to donate at this hospital.");
+    return;
+  }
+
+  try {
+    console.log("Confirm Donation clicked", { 
+      hospitalId: center.hospital_id,
+      center 
+    });
+
+    const response = await axios.post(
+      `http://localhost:9095/donors/donation`,
+      {
+        // Only send hospitalId - donorId will be extracted from auth token
+        hospitalId: center.hospital_id,
+      },
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          withCredentials: true,
-        }
-      );
-      console.log("Donation creation response:", response.data);
-      alert(
-        `Thank you for choosing to donate at ${center.hospital_name}! Your donation request has been recorded. Please contact the center to schedule your appointment.`
-      );
-      setDonationError(null);
-      setPendingHospitals([...pendingHospitals, center.hospital_id]);
-    } catch (err: any) {
-      let errorMessage = "Failed to record donation.";
-      if (err.response) {
-        errorMessage = err.response.data?.message || err.message;
-      } else if (err.request) {
-        errorMessage = "Network error: Unable to reach server.";
       }
-      setDonationError(errorMessage);
-      console.error("Error recording donation:", err);
-      alert(`Error: ${errorMessage}`);
+    );
+
+    console.log("Donation creation response:", response.data);
+    
+    // Show success message
+    alert(
+      `Thank you for choosing to donate at ${center.hospital_name}! Your donation request has been recorded. Please contact the center to schedule your appointment.`
+    );
+    
+    // Update state to reflect the new pending request
+    setDonationError(null);
+    setPendingHospitals([...pendingHospitals, center.hospital_id]);
+
+  } catch (err: any) {
+    console.error("Error recording donation:", err);
+    
+    let errorMessage = "Failed to record donation.";
+    
+    if (err.response) {
+      // Server responded with error status
+      const status = err.response.status;
+      const data = err.response.data;
+      
+      switch (status) {
+        case 400:
+          errorMessage = data?.message || "Invalid request data.";
+          break;
+        case 401:
+          errorMessage = "Authentication required. Please log in again.";
+          // Optionally redirect to login
+          // navigate('/login');
+          break;
+        case 403:
+          errorMessage = "Access denied. Authentication issue detected.";
+          break;
+        case 404:
+          errorMessage = data?.message || "Donor or hospital not found.";
+          break;
+        case 409:
+          errorMessage = "You have already requested to donate at this hospital.";
+          // Update local state to reflect this
+          setPendingHospitals([...pendingHospitals, center.hospital_id]);
+          break;
+        case 500:
+          errorMessage = "Server error. Please try again later.";
+          break;
+        default:
+          errorMessage = data?.message || `Server error (${status}). Please try again.`;
+      }
+    } else if (err.request) {
+      // Network error
+      errorMessage = "Network error: Unable to reach server. Please check your connection.";
+    } else if (err.message) {
+      // Request setup error
+      errorMessage = err.message;
     }
-  };
+    
+    setDonationError(errorMessage);
+    alert(`Error: ${errorMessage}`);
+  }
+};
 
   // Fetch nearby donation centers, pending requests, and user location if eligible
   useEffect(() => {

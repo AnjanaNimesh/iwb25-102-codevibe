@@ -5,6 +5,7 @@ import ballerina/sql;
 import ballerina/regex as re;
 import ballerina/lang.array as arrays;
 import ballerina/time;
+import ballerina/crypto;
 
 @http:ServiceConfig {
     cors: {
@@ -16,7 +17,214 @@ import ballerina/time;
 }
 
 service /donors on new http:Listener(9095) {
+
+    // Districts endpoint for signup form
+resource function get districts() returns District[]|http:Response|error {
+    http:Response response = new;
     
+    sql:ParameterizedQuery districtQuery = `SELECT district_id, district_name 
+                                           FROM district 
+                                           ORDER BY district_name`;
+    
+    stream<District, sql:Error?> districtStream = database:dbClient->query(districtQuery);
+    
+    District[] districts = [];
+    error? streamError = districtStream.forEach(function(District district) {
+        districts.push(district);
+    });
+    
+    if streamError is error {
+        response.setJsonPayload({
+            status: "error",
+            message: "Failed to fetch districts"
+        });
+        response.statusCode = 500;
+        return response;
+    }
+    
+    response.setJsonPayload({
+        status: "success",
+        districts: districts
+    });
+    response.statusCode = 200;
+    return response;
+}
+   //signup for donors
+   resource function post signup(http:Request req) returns http:Response|error {
+    http:Response response = new;
+    
+    io:println("=== DONOR SIGNUP REQUEST ===");
+    
+    // Parse request body
+    json payload = check req.getJsonPayload();
+    DonorSignupRequest signupData = check payload.cloneWithType(DonorSignupRequest);
+    
+    io:println("Signup request for email: ", signupData.email);
+
+    // Validate required fields
+    if signupData.donor_name.trim() == "" || 
+       signupData.email.trim() == "" || 
+       signupData.phone_number.trim() == "" ||
+       signupData.password.trim() == "" ||
+       signupData.district_name.trim() == "" ||
+       signupData.blood_group.trim() == "" ||
+       signupData.gender.trim() == "" {
+        io:println("Validation failed: Missing required fields");
+        response.setJsonPayload({
+            status: "error",
+            message: "All required fields must be provided"
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    // Validate blood group
+    string[] validBloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+    if validBloodGroups.indexOf(signupData.blood_group) is () {
+        io:println("Validation failed: Invalid blood group - ", signupData.blood_group);
+        response.setJsonPayload({
+            status: "error",
+            message: "Invalid blood group"
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    // Validate gender
+    string[] validGenders = ["Male", "Female", "Other"];
+    if validGenders.indexOf(signupData.gender) is () {
+        io:println("Validation failed: Invalid gender - ", signupData.gender);
+        response.setJsonPayload({
+            status: "error",
+            message: "Invalid gender"
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    // Validate phone number (10 digits)
+    if signupData.phone_number.length() != 10 {
+        io:println("Validation failed: Invalid phone number length - ", signupData.phone_number.length());
+        response.setJsonPayload({
+            status: "error",
+            message: "Phone number must be 10 digits"
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    // Validate email format (basic validation)
+    if !signupData.email.includes("@") {
+        io:println("Validation failed: Invalid email format");
+        response.setJsonPayload({
+            status: "error",
+            message: "Invalid email format"
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    // Check if email already exists
+    sql:ParameterizedQuery emailCheckQuery = `SELECT donor_id FROM donor WHERE email = ${signupData.email}`;
+    int|error existingDonor = database:dbClient->queryRow(emailCheckQuery);
+    
+    if existingDonor is int {
+        io:println("Email already exists: ", signupData.email);
+        response.setJsonPayload({
+            status: "error",
+            message: "Email already exists. Please use a different email address."
+        });
+        response.statusCode = 409; // Conflict
+        return response;
+    }
+
+    // Get district_id from district_name
+    sql:ParameterizedQuery districtQuery = `SELECT district_id FROM district WHERE district_name = ${signupData.district_name}`;
+    record {|int district_id;|}? districtResult = check database:dbClient->queryRow(districtQuery);
+    
+    if districtResult is () {
+        io:println("District lookup failed: ", signupData.district_name);
+        response.setJsonPayload({
+            status: "error",
+            message: "Invalid district name"
+        });
+        response.statusCode = 400;
+        return response;
+    }
+
+    int district_id = districtResult.district_id;
+    io:println("District ID found: ", district_id);
+
+    // Hash the password using bcrypt (matching your auth system)
+    string|crypto:Error passwordHash = check crypto:hashBcrypt(signupData.password, 12);
+    
+    if passwordHash is crypto:Error {
+        io:println("Password hashing failed: ", passwordHash.message());
+        response.setJsonPayload({
+            status: "error",
+            message: "Failed to process password"
+        });
+        response.statusCode = 500;
+        return response;
+    }
+
+    io:println("Password hashed successfully");
+
+    // Parse last donation date if provided
+    string? lastDonationDate = ();
+    if signupData?.last_donation_date is string && signupData?.last_donation_date != "" {
+        lastDonationDate = signupData?.last_donation_date;
+        io:println("Last donation date provided: ", lastDonationDate);
+    }
+
+    // Insert donor into database
+    sql:ParameterizedQuery insertQuery = `INSERT INTO donor 
+        (donor_name, email, phone_number, password_hash, district_id, blood_group, last_donation_date, gender, status)
+        VALUES (${signupData.donor_name}, ${signupData.email}, ${signupData.phone_number}, 
+                ${passwordHash}, ${district_id}, ${signupData.blood_group}, ${lastDonationDate}, 
+                ${signupData.gender}, 'active')`;
+
+    sql:ExecutionResult|error insertResult = database:dbClient->execute(insertQuery);
+    
+    if insertResult is error {
+        io:println("Database insertion failed: ", insertResult.message());
+        
+        // Check if it's a duplicate entry error
+        if insertResult.message().includes("Duplicate entry") {
+            response.setJsonPayload({
+                status: "error",
+                message: "Email already exists. Please use a different email address."
+            });
+            response.statusCode = 409; // Conflict
+        } else {
+            response.setJsonPayload({
+                status: "error",
+                message: "Failed to register donor. Please try again."
+            });
+            response.statusCode = 500;
+        }
+        return response;
+    }
+
+    // Get the generated donor_id
+    int|string? generatedId = insertResult.lastInsertId;
+    int donorId = 0;
+    if generatedId is int {
+        donorId = generatedId;
+        io:println("New donor created with ID: ", donorId);
+    }
+
+    // Success response
+    io:println("Donor signup successful for: ", signupData.email);
+    response.setJsonPayload({
+        status: "success",
+        message: "Donor registered successfully",
+        donor_id: donorId
+    });
+    response.statusCode = 201;
+    return response;
+}
+
     // Get donor details by donor_id (donors can only access their own data)
     resource function get [int donorId](http:Request req) returns Donor|error {
         AuthValidationResult|error authResult = validateDonorToken(req);
@@ -396,59 +604,204 @@ service /donors on new http:Listener(9095) {
     }
 
     // Create a new donation record
-    resource function post donation(http:Request req) returns json|error {
-        AuthValidationResult|error authResult = validateDonorToken(req);
-        if authResult is error {
-            return error("Authentication failed: " + authResult.message());
-        }
-        if !authResult.isValid {
-            return error("Access denied: Authentication required");
-        }
+    // resource function post donation(http:Request req) returns json|error {
+    //     AuthValidationResult|error authResult = validateDonorToken(req);
+    //     if authResult is error {
+    //         return error("Authentication failed: " + authResult.message());
+    //     }
+    //     if !authResult.isValid {
+    //         return error("Access denied: Authentication required");
+    //     }
 
-        int donorId = check int:fromString(authResult.userId);
-        json payload = check req.getJsonPayload();
-        int hospitalId = check int:fromString((check payload.hospitalId).toString());
+    //     int donorId = check int:fromString(authResult.userId);
+    //     json payload = check req.getJsonPayload();
+    //     int hospitalId = check int:fromString((check payload.hospitalId).toString());
 
-        // Verify donor exists
-        sql:ParameterizedQuery donorQuery = `SELECT donor_id FROM donor WHERE donor_id = ${donorId}`;
-        record {|int donor_id;|}? donor = check database:dbClient->queryRow(donorQuery);
-        if donor is () {
-            return error("Donor not found");
-        }
+    //     // Verify donor exists
+    //     sql:ParameterizedQuery donorQuery = `SELECT donor_id FROM donor WHERE donor_id = ${donorId}`;
+    //     record {|int donor_id;|}? donor = check database:dbClient->queryRow(donorQuery);
+    //     if donor is () {
+    //         return error("Donor not found");
+    //     }
 
-        // Verify hospital exists
-        sql:ParameterizedQuery hospitalQuery = `SELECT hospital_id FROM hospital WHERE hospital_id = ${hospitalId}`;
-        record {|int hospital_id;|}? hospital = check database:dbClient->queryRow(hospitalQuery);
-        if hospital is () {
-            return error("Hospital not found");
-        }
+    //     // Verify hospital exists
+    //     sql:ParameterizedQuery hospitalQuery = `SELECT hospital_id FROM hospital WHERE hospital_id = ${hospitalId}`;
+    //     record {|int hospital_id;|}? hospital = check database:dbClient->queryRow(hospitalQuery);
+    //     if hospital is () {
+    //         return error("Hospital not found");
+    //     }
 
-        // Check for existing pending request
-        sql:ParameterizedQuery checkQuery = `SELECT donation_id FROM donation 
-                                             WHERE donor_id = ${donorId} 
-                                             AND hospital_id = ${hospitalId} 
-                                             AND donate_status = 'Pending'`;
-        record {|int donation_id;|}?|sql:Error existing = database:dbClient->queryRow(checkQuery);
+    //     // Check for existing pending request
+    //     sql:ParameterizedQuery checkQuery = `SELECT donation_id FROM donation 
+    //                                          WHERE donor_id = ${donorId} 
+    //                                          AND hospital_id = ${hospitalId} 
+    //                                          AND donate_status = 'Pending'`;
+    //     record {|int donation_id;|}?|sql:Error existing = database:dbClient->queryRow(checkQuery);
 
-        if existing is record {|int donation_id;|} {
-            return error("You have already requested to donate at this hospital");
-        } else if existing is sql:Error {
-            return error("Database error checking existing request");
-        }
+    //     if existing is record {|int donation_id;|} {
+    //         return error("You have already requested to donate at this hospital");
+    //     } else if existing is sql:Error {
+    //         return error("Database error checking existing request");
+    //     }
 
-        // Insert donation record
-        sql:ParameterizedQuery insertQuery = `INSERT INTO donation (donor_id, hospital_id, donate_status)
-                                             VALUES (${donorId}, ${hospitalId}, 'Pending')`;
-        sql:ExecutionResult result = check database:dbClient->execute(insertQuery);
+    //     // Insert donation record
+    //     sql:ParameterizedQuery insertQuery = `INSERT INTO donation (donor_id, hospital_id, donate_status)
+    //                                          VALUES (${donorId}, ${hospitalId}, 'Pending')`;
+    //     sql:ExecutionResult result = check database:dbClient->execute(insertQuery);
 
-        if result.affectedRowCount == 0 {
-            return error("Failed to record donation");
-        }
+    //     if result.affectedRowCount == 0 {
+    //         return error("Failed to record donation");
+    //     }
 
-        string|int? donationId = result.lastInsertId;
-        io:println("Donation recorded for donor_id: ", donorId, ", hospital_id: ", hospitalId, ", donation_id: ", donationId);
-        return {"message": "Donation request recorded successfully", "donationId": donationId};
+    //     string|int? donationId = result.lastInsertId;
+    //     io:println("Donation recorded for donor_id: ", donorId, ", hospital_id: ", hospitalId, ", donation_id: ", donationId);
+    //     return {"message": "Donation request recorded successfully", "donationId": donationId};
+    // }
+
+    resource function post donation(http:Request req) returns http:Response|error {
+    http:Response response = new;
+    
+    // Validate authentication
+    AuthValidationResult|error authResult = validateDonorToken(req);
+    if authResult is error {
+        response.statusCode = 401;
+        response.setJsonPayload({"error": "Authentication failed", "message": authResult.message()});
+        return response;
     }
+    if !authResult.isValid {
+        response.statusCode = 401;
+        response.setJsonPayload({"error": "Access denied", "message": "Authentication required"});
+        return response;
+    }
+
+    // Extract donor ID from authentication token
+    int|error donorIdResult = int:fromString(authResult.userId);
+    if donorIdResult is error {
+        response.statusCode = 400;
+        response.setJsonPayload({"error": "Invalid authenticated user ID"});
+        return response;
+    }
+    int donorId = donorIdResult;
+
+    // Parse request payload
+    json|error payloadResult = req.getJsonPayload();
+    if payloadResult is error {
+        response.statusCode = 400;
+        response.setJsonPayload({"error": "Invalid JSON payload", "message": payloadResult.message()});
+        return response;
+    }
+    json payload = payloadResult;
+
+    // Extract and validate hospitalId from payload (donorId no longer needed in payload)
+    json|error hospitalIdJson = payload.hospitalId;
+    if hospitalIdJson is error {
+        response.statusCode = 400;
+        response.setJsonPayload({"error": "Missing hospitalId in request"});
+        return response;
+    }
+    
+    int|error hospitalIdResult = int:fromString(hospitalIdJson.toString());
+    if hospitalIdResult is error {
+        response.statusCode = 400;
+        response.setJsonPayload({"error": "Invalid hospitalId format"});
+        return response;
+    }
+    int hospitalId = hospitalIdResult;
+
+    // Verify donor exists using query to handle not found properly
+    sql:ParameterizedQuery donorQuery = `SELECT donor_id FROM donor WHERE donor_id = ${donorId}`;
+    stream<record {|int donor_id;|}, sql:Error?> donorStream = database:dbClient->query(donorQuery);
+    record {|int donor_id;|}[]|sql:Error donorRecords = from record {|int donor_id;|} donor in donorStream
+                                                        select donor;
+    
+    if donorRecords is sql:Error {
+        io:println("SQL Error verifying donor: ", donorRecords.message());
+        response.statusCode = 500;
+        response.setJsonPayload({"error": "Database error", "message": "Failed to verify donor"});
+        return response;
+    }
+    
+    if donorRecords.length() == 0 {
+        response.statusCode = 404;
+        response.setJsonPayload({"error": "Donor not found"});
+        return response;
+    }
+
+    // Verify hospital exists using query
+    sql:ParameterizedQuery hospitalQuery = `SELECT hospital_id FROM hospital WHERE hospital_id = ${hospitalId}`;
+    stream<record {|int hospital_id;|}, sql:Error?> hospitalStream = database:dbClient->query(hospitalQuery);
+    record {|int hospital_id;|}[]|sql:Error hospitalRecords = from record {|int hospital_id;|} hospital in hospitalStream
+                                                              select hospital;
+    
+    if hospitalRecords is sql:Error {
+        io:println("SQL Error verifying hospital: ", hospitalRecords.message());
+        response.statusCode = 500;
+        response.setJsonPayload({"error": "Database error", "message": "Failed to verify hospital"});
+        return response;
+    }
+    
+    if hospitalRecords.length() == 0 {
+        response.statusCode = 404;
+        response.setJsonPayload({"error": "Hospital not found"});
+        return response;
+    }
+
+    // Check for existing pending request
+    sql:ParameterizedQuery checkQuery = `SELECT donation_id FROM donation 
+                                         WHERE donor_id = ${donorId} 
+                                         AND hospital_id = ${hospitalId} 
+                                         AND donate_status = 'Pending'`;
+    
+    stream<record {|int donation_id;|}, sql:Error?> existingStream = database:dbClient->query(checkQuery);
+    record {|int donation_id;|}[]|sql:Error existingRecords = from record {|int donation_id;|} donation in existingStream
+                                                               select donation;
+    
+    if existingRecords is sql:Error {
+        io:println("SQL Error checking existing request: ", existingRecords.message());
+        response.statusCode = 500;
+        response.setJsonPayload({"error": "Database error", "message": "Failed to check existing requests"});
+        return response;
+    }
+    
+    if existingRecords.length() > 0 {
+        response.statusCode = 409; // Conflict
+        response.setJsonPayload({"error": "Duplicate request", "message": "You have already requested to donate at this hospital"});
+        return response;
+    }
+
+    // Insert donation record
+    sql:ParameterizedQuery insertQuery = `INSERT INTO donation (donor_id, hospital_id, donate_status)
+                                         VALUES (${donorId}, ${hospitalId}, 'Pending')`;
+    
+    sql:ExecutionResult|sql:Error insertResult = database:dbClient->execute(insertQuery);
+    if insertResult is sql:Error {
+        io:println("SQL Error inserting donation: ", insertResult.message());
+        response.statusCode = 500;
+        response.setJsonPayload({"error": "Database error", "message": "Failed to record donation"});
+        return response;
+    }
+
+    sql:ExecutionResult result = insertResult;
+    if result.affectedRowCount == 0 {
+        response.statusCode = 500;
+        response.setJsonPayload({"error": "Insert failed", "message": "No rows affected during donation recording"});
+        return response;
+    }
+
+    string|int? donationId = result.lastInsertId;
+    io:println("Donation recorded successfully - donor_id: ", donorId, ", hospital_id: ", hospitalId, ", donation_id: ", donationId);
+    
+    response.statusCode = 201; // Created
+    response.setJsonPayload({
+        "message": "Donation request recorded successfully", 
+        "donationId": donationId,
+        "donorId": donorId,
+        "hospitalId": hospitalId
+    });
+    return response;
+}
+
+
 }
 
 function validateDonorToken(http:Request req) returns AuthValidationResult|error {
