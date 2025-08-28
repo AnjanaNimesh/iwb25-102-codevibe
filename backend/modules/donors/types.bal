@@ -49,15 +49,6 @@ public type DonationRequest record {|
     string donate_status;
 |};
 
-
-// public type District record {|
-//     int district_id;
-//     string district_name;
-// |};
-
-
-
-
 // Data types for donor signup
 type DonorSignupRequest record {|
     string donor_name;
@@ -74,23 +65,6 @@ type District record {|
     int district_id;
     string district_name;
 |};
-
-public type District record {|
-    int district_id;
-    string district_name;
-|};
-
-// Record type for signup request
-type DonorSignupRequest record {
-    string donor_name;
-    string email;
-    string phone_number;
-    string password;
-    string district_name;  
-    string blood_group;
-    string? last_donation_date?; 
-    string gender;
-};
 
 // Record type for signup response
 type DonorSignupResponse record {
