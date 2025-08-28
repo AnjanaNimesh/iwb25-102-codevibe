@@ -253,6 +253,7 @@ resource function get districts() returns District[]|http:Response|error {
         return donor;
     }
 
+
     // Get current donor's details (using token information)
     resource function get profile(http:Request req) returns Donor|error {
         AuthValidationResult|error authResult = validateDonorToken(req);
@@ -553,9 +554,6 @@ resource function get districts() returns District[]|http:Response|error {
         if latitude is error || longitude is error {
             return error("Invalid query parameters: latitude and longitude must be valid numbers");
         }
-        // if radius <= 0 {
-        //     return error("Invalid query parameter: radius must be a positive number");
-        // }
 
         // Query hospitals with Haversine formula for distance calculation
         sql:ParameterizedQuery query = `
@@ -578,6 +576,86 @@ resource function get districts() returns District[]|http:Response|error {
         check resultStream.close();
         io:println("Fetched ", hospitals.length(), " hospitals within ", radius, " km");
         return hospitals;
+    }
+
+    // Get pending donation requests for the current donor
+    resource function get donations/pending(http:Request req) returns DonationRequest[]|error {
+        AuthValidationResult|error authResult = validateDonorToken(req);
+        if authResult is error {
+            return error("Authentication failed: " + authResult.message());
+        }
+        if !authResult.isValid {
+            return error("Access denied: Authentication required");
+        }
+
+        int donorId = check int:fromString(authResult.userId);
+
+        stream<DonationRequest, sql:Error?> resultStream = database:dbClient->query(
+            `SELECT donation_id, donor_id, hospital_id, donate_status
+             FROM donation
+             WHERE donor_id = ${donorId} AND donate_status = 'Pending'`
+        );
+        DonationRequest[] pending = [];
+        check resultStream.forEach(function(DonationRequest donation) {
+            pending.push(donation);
+        });
+        check resultStream.close();
+        return pending;
+    }
+
+    // Create a new donation record
+    resource function post donation(http:Request req) returns json|error {
+        AuthValidationResult|error authResult = validateDonorToken(req);
+        if authResult is error {
+            return error("Authentication failed: " + authResult.message());
+        }
+        if !authResult.isValid {
+            return error("Access denied: Authentication required");
+        }
+
+        int donorId = check int:fromString(authResult.userId);
+        json payload = check req.getJsonPayload();
+        int hospitalId = check int:fromString((check payload.hospitalId).toString());
+
+        // Verify donor exists
+        sql:ParameterizedQuery donorQuery = `SELECT donor_id FROM donor WHERE donor_id = ${donorId}`;
+        record {|int donor_id;|}? donor = check database:dbClient->queryRow(donorQuery);
+        if donor is () {
+            return error("Donor not found");
+        }
+
+        // Verify hospital exists
+        sql:ParameterizedQuery hospitalQuery = `SELECT hospital_id FROM hospital WHERE hospital_id = ${hospitalId}`;
+        record {|int hospital_id;|}? hospital = check database:dbClient->queryRow(hospitalQuery);
+        if hospital is () {
+            return error("Hospital not found");
+        }
+
+        // Check for existing pending request
+        sql:ParameterizedQuery checkQuery = `SELECT donation_id FROM donation 
+                                             WHERE donor_id = ${donorId} 
+                                             AND hospital_id = ${hospitalId} 
+                                             AND donate_status = 'Pending'`;
+        record {|int donation_id;|}?|sql:Error existing = database:dbClient->queryRow(checkQuery);
+
+        if existing is record {|int donation_id;|} {
+            return error("You have already requested to donate at this hospital");
+        } else if existing is sql:Error {
+            return error("Database error checking existing request");
+        }
+
+        // Insert donation record
+        sql:ParameterizedQuery insertQuery = `INSERT INTO donation (donor_id, hospital_id, donate_status)
+                                             VALUES (${donorId}, ${hospitalId}, 'Pending')`;
+        sql:ExecutionResult result = check database:dbClient->execute(insertQuery);
+
+        if result.affectedRowCount == 0 {
+            return error("Failed to record donation");
+        }
+
+        string|int? donationId = result.lastInsertId;
+        io:println("Donation recorded for donor_id: ", donorId, ", hospital_id: ", hospitalId, ", donation_id: ", donationId);
+        return {"message": "Donation request recorded successfully", "donationId": donationId};
     }
 }
 
@@ -806,3 +884,5 @@ function validateToken(http:Request req) returns AuthValidationResult|error {
 public function startDonorsService() returns error? {
     io:println("Donors service with authentication started on port: 9095");
 }
+
+
