@@ -40,3 +40,27 @@ public type DonationHistory record {|
     string location;
     string donation_type;
 |};
+
+public type District record {|
+    int district_id;
+    string district_name;
+|};
+
+// Record type for signup request
+type DonorSignupRequest record {
+    string donor_name;
+    string email;
+    string phone_number;
+    string password;
+    string district_name;  
+    string blood_group;
+    string? last_donation_date?; 
+    string gender;
+};
+
+// Record type for signup response
+type DonorSignupResponse record {
+    string status;
+    string message;
+    int? donor_id?;
+};
