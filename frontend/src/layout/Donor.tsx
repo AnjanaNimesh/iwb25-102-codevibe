@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
-import { Navbar } from "../pages/donor/components/Navbar";
-import { Footer } from "../pages/donor/components/Footer";
+import Navbar from "../pages/shared/components/Navbar"
+import Footer from "../pages/shared/components/Footer";
 
 const Donor = () => {
   return (
@@ -21,9 +21,9 @@ const Donor = () => {
     //   <Footer />
     // </div>
     <div>
-      <Navbar />
+      <Navbar/>
       <Outlet />
-      <Footer />
+      <Footer/>
     </div>
   );
 };
