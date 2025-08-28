@@ -275,6 +275,7 @@ import { ProfilePage } from "./pages/donor/ProfilePage";
 import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibilityForm";
 import { BloodDonationEligibilityResult } from "./pages/donor/BloodDonationEligibilityResult";
 import HospitalProfilePage from "./pages/hospital/Profile";
+import Shared from "./layout/Shared";
 
 function App() {
   return (
@@ -286,10 +287,13 @@ function App() {
             path="/"
             element={
               <PublicRoute>
-                <Home />
+                <Shared />
               </PublicRoute>
             }
-          />
+          >
+          <Route path="" element={<Home/>} />
+          </Route>
+
           <Route
             path="/login"
             element={
@@ -354,8 +358,8 @@ function App() {
               </DonorRoute>
             }
           >
-            <Route path="" element={<DonorDashboard />} />
-            <Route path="dashboard" element={<DonorDashboard />} />
+            <Route path="" element={<Home/>} />
+            <Route path="dashboard" element={<Home/>} />
             <Route
               path="bloodRequestsPage/eligibility/:id"
               element={<BloodDonationEligibilityForm />}
