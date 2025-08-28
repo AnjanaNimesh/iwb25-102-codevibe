@@ -37,7 +37,7 @@ const DonorSignup: React.FC = () => {
 
   const fetchDistricts = async () => {
     try {
-      const response = await fetch('http://localhost:9093/donor/districts');
+      const response = await fetch('http://localhost:9095/donors/districts');
       if (response.ok) {
         const data = await response.json();
         setDistricts(data.districts || []);
@@ -89,7 +89,7 @@ const DonorSignup: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:9093/donor/signup', {
+      const response = await fetch('http://localhost:9095/donors/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
