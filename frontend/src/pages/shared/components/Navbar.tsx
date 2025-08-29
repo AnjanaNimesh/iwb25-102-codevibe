@@ -1,10 +1,17 @@
-// import React, { useState } from 'react';
-// import { Heart, Menu, X } from 'lucide-react';
-// import { useNavigate } from 'react-router-dom';
+// import React, { useState } from "react";
+// import { Heart, Menu, X, User } from "lucide-react";
+// import { Link, useNavigate } from "react-router-dom";
+// import { useAuth } from "../../../contexts/AuthContext";
 
 // const Navbar = () => {
 //   const [isMenuOpen, setIsMenuOpen] = useState(false);
 //   const navigate = useNavigate();
+//   const { user, isAuthenticated, logout } = useAuth();
+
+//   const handleLogout = async () => {
+//     await logout();
+//     navigate("/"); // Redirect to home after logout
+//   };
 
 //   return (
 //     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -23,33 +30,92 @@
 
 //           {/* Desktop Navigation */}
 //           <div className="hidden lg:flex items-center space-x-8">
-//             <a href="#home" className="text-gray-700 hover:text-red-500 transition-colors font-medium">Home</a>
-//             <a href="#about" className="text-gray-700 hover:text-red-500 transition-colors font-medium">About</a>
-//             <a href="#contact" className="text-gray-700 hover:text-red-500 transition-colors font-medium">Contact</a>
+//             <Link
+//               to="/"
+//               className="text-gray-700 hover:text-red-500 font-medium"
+//             >
+//               Home
+//             </Link>
+//             <Link
+//               to="/why-donate"
+//               className="text-gray-700 hover:text-red-500 font-medium"
+//             >
+//               Why Donate
+//             </Link>
+//             <Link
+//               to="/get-involved"
+//               className="text-gray-700 hover:text-red-500 font-medium"
+//             >
+//               Get Involved
+//             </Link>
+//             <Link
+//               to="/campaigns"
+//               className="text-gray-700 hover:text-red-500 font-medium"
+//             >
+//               Campaigns
+//             </Link>
+//             <Link
+//               to="/contact"
+//               className="text-gray-700 hover:text-red-500 font-medium"
+//             >
+//               Contact
+//             </Link>
 
-//             {/* Login/Register Buttons */}
-//             <div className="flex items-center space-x-3">
+//             {/* Donor-specific buttons */}
+//             {isAuthenticated && user?.role === "donor" && (
 //               <button
-//                 onClick={() => navigate('/login')}
-//                 className="border border-red-500 text-red-500 px-6 py-2 rounded-full hover:bg-red-50 transition-colors"
+//                 onClick={() => navigate("/donor/bloodRequestsPage")}
+//                 className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
 //               >
-//                 Sign In
+//                 Donate Now
 //               </button>
-//               <button
-//                 onClick={() => navigate('/signup')}
-//                 className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors"
-//               >
-//                 Sign Up
-//               </button>
-//             </div>
+//             )}
+
+//             {/* Auth buttons */}
+//             {!isAuthenticated ? (
+//               <div className="flex items-center space-x-3">
+//                 <button
+//                   onClick={() => navigate("/login")}
+//                   className="border border-red-500 text-red-500 px-6 py-2 rounded-full hover:bg-red-50"
+//                 >
+//                   Sign In
+//                 </button>
+//                 <button
+//                   onClick={() => navigate("/signup")}
+//                   className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+//                 >
+//                   Sign Up
+//                 </button>
+//               </div>
+//             ) : (
+//               <div className="flex items-center space-x-3">
+//                 <button
+//                   onClick={handleLogout}
+//                   className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+//                 >
+//                   Logout
+//                 </button>
+//                 <button
+//                   onClick={() => navigate("/donor/profile")}
+//                   className="bg-gray-100 p-2 rounded-full hover:bg-gray-200"
+//                   aria-label="Profile"
+//                 >
+//                   <User className="h-5 w-5 text-gray-800" />
+//                 </button>
+//               </div>
+//             )}
 //           </div>
 
 //           {/* Mobile Menu Button */}
-//           <button 
+//           <button
 //             onClick={() => setIsMenuOpen(!isMenuOpen)}
 //             className="lg:hidden p-2"
 //           >
-//             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+//             {isMenuOpen ? (
+//               <X className="h-6 w-6" />
+//             ) : (
+//               <Menu className="h-6 w-6" />
+//             )}
 //           </button>
 //         </div>
 
@@ -58,26 +124,67 @@
 //           <div className="lg:hidden pb-4 border-t border-gray-200 mt-4">
 //             <div className="flex flex-col space-y-3 pt-4">
 //               <a href="#home" className="text-gray-700 hover:text-red-500 py-2 font-medium">Home</a>
-//               <a href="#services" className="text-gray-700 hover:text-red-500 py-2 font-medium">Services</a>
-//               <a href="#donor-portal" className="text-gray-700 hover:text-red-500 py-2 ml-4">• Donor Portal</a>
-//               <a href="#hospital-portal" className="text-gray-700 hover:text-red-500 py-2 ml-4">• Hospital Portal</a>
-//               <a href="#admin-portal" className="text-gray-700 hover:text-red-500 py-2 ml-4">• Admin Portal</a>
 //               <a href="#about" className="text-gray-700 hover:text-red-500 py-2 font-medium">About</a>
-//               <a href="#contact" className="text-gray-700 hover:text-red-500 py-2 font-medium">Contact</a>
-//               <div className="flex flex-col space-y-2 pt-4">
-//                 <button
-//                   onClick={() => { setIsMenuOpen(false); navigate('/login'); }}
-//                   className="border border-red-500 text-red-500 px-6 py-2 rounded-full hover:bg-red-50 transition-colors"
-//                 >
-//                   Sign In
-//                 </button>
-//                 <button
-//                   onClick={() => { setIsMenuOpen(false); navigate('/signup'); }}
-//                   className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600 transition-colors"
-//                 >
-//                   Sign Up
-//                 </button>
-//               </div>
+
+//               {isAuthenticated && user?.role === "donor" && (
+//                 <>
+//                   <button
+//                     onClick={() => {
+//                       setIsMenuOpen(false);
+//                       navigate("/donor/bloodRequestsPage");
+//                     }}
+//                     className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+//                   >
+//                     Donate Now
+//                   </button>
+//                 </>
+//               )}
+
+//               {/* Auth buttons for mobile */}
+//               {!isAuthenticated ? (
+//                 <div className="flex flex-col space-y-2 pt-4">
+//                   <button
+//                     onClick={() => {
+//                       setIsMenuOpen(false);
+//                       navigate("/login");
+//                     }}
+//                     className="border border-red-500 text-red-500 px-6 py-2 rounded-full hover:bg-red-50"
+//                   >
+//                     Sign In
+//                   </button>
+//                   <button
+//                     onClick={() => {
+//                       setIsMenuOpen(false);
+//                       navigate("/signup");
+//                     }}
+//                     className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+//                   >
+//                     Sign Up
+//                   </button>
+//                 </div>
+//               ) : (
+//                 <div className="flex flex-col space-y-2 pt-4">
+//                   <button
+//                     onClick={() => {
+//                       setIsMenuOpen(false);
+//                       handleLogout();
+//                     }}
+//                     className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+//                   >
+//                     Logout
+//                   </button>
+//                   <button
+//                     onClick={() => {
+//                       setIsMenuOpen(false);
+//                       navigate("/donor/profile");
+//                     }}
+//                     className="flex items-center justify-center space-x-2 bg-gray-100 py-2 rounded-full hover:bg-gray-200"
+//                   >
+//                     <User className="h-5 w-5 text-gray-800" />
+//                     <span>Profile</span>
+//                   </button>
+//                 </div>
+//               )}
 //             </div>
 //           </div>
 //         )}
@@ -90,27 +197,23 @@
 
 
 
-
-
-
-
-
-
-
 import React, { useState } from "react";
-import { Heart, Menu, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../contexts/AuthContext"; 
+import { Heart, Menu, X, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth(); // ✅ get user + auth state
+  const { user, isAuthenticated, logout } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    navigate("/"); // redirect to home after logout
+    navigate("/"); // Redirect to home after logout
   };
+
+  // Decide link prefix based on role
+  const donorPrefix = isAuthenticated && user?.role === "donor" ? "/donor" : "";
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -129,20 +232,46 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a href="/" className="text-gray-700 hover:text-red-500 font-medium">Home</a>
-            <a href="/about" className="text-gray-700 hover:text-red-500 font-medium">About</a>
+            <Link
+              to={`${donorPrefix}/`}
+              className="text-gray-700 hover:text-red-500 font-medium"
+            >
+              Home
+            </Link>
+            <Link
+              to={`${donorPrefix}/why-donate`}
+              className="text-gray-700 hover:text-red-500 font-medium"
+            >
+              Why Donate
+            </Link>
+            <Link
+              to={`${donorPrefix}/get-involved`}
+              className="text-gray-700 hover:text-red-500 font-medium"
+            >
+              Get Involved
+            </Link>
+            <Link
+              to={`${donorPrefix}/campaigns`}
+              className="text-gray-700 hover:text-red-500 font-medium"
+            >
+              Campaigns
+            </Link>
+            <Link
+              to={`${donorPrefix}/contact`}
+              className="text-gray-700 hover:text-red-500 font-medium"
+            >
+              Contact
+            </Link>
 
-            {/* Role-based link */}
+            {/* Donor-specific buttons */}
             {isAuthenticated && user?.role === "donor" && (
-              <a
+              <button
                 onClick={() => navigate("/donor/bloodRequestsPage")}
-                className="text-gray-700 hover:text-red-500 font-medium cursor-pointer"
+                className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
               >
-              Dashboard
-              </a>
+                Donate Now
+              </button>
             )}
-
-            <a href="#contact" className="text-gray-700 hover:text-red-500 font-medium">Contact</a>
 
             {/* Auth buttons */}
             {!isAuthenticated ? (
@@ -161,12 +290,21 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
-              >
-                Logout
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+                >
+                  Logout
+                </button>
+                <button
+                  onClick={() => navigate("/donor/profile")}
+                  className="bg-gray-100 p-2 rounded-full hover:bg-gray-200"
+                  aria-label="Profile"
+                >
+                  <User className="h-5 w-5 text-gray-800" />
+                </button>
+              </div>
             )}
           </div>
 
@@ -175,7 +313,11 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden p-2"
           >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
@@ -183,42 +325,98 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="lg:hidden pb-4 border-t border-gray-200 mt-4">
             <div className="flex flex-col space-y-3 pt-4">
-              <a href="/" className="text-gray-700 hover:text-red-500 py-2 font-medium">Home</a>
-              <a href="/about" className="text-gray-700 hover:text-red-500 py-2 font-medium">About</a>
+              <Link
+                to={`${donorPrefix}/`}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 hover:text-red-500 py-2 font-medium"
+              >
+                Home
+              </Link>
+              <Link
+                to={`${donorPrefix}/why-donate`}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 hover:text-red-500 py-2 font-medium"
+              >
+                Why Donate
+              </Link>
+              <Link
+                to={`${donorPrefix}/get-involved`}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 hover:text-red-500 py-2 font-medium"
+              >
+                Get Involved
+              </Link>
+              <Link
+                to={`${donorPrefix}/campaigns`}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 hover:text-red-500 py-2 font-medium"
+              >
+                Campaigns
+              </Link>
+              <Link
+                to={`${donorPrefix}/contact`}
+                onClick={() => setIsMenuOpen(false)}
+                className="text-gray-700 hover:text-red-500 py-2 font-medium"
+              >
+                Contact
+              </Link>
 
               {isAuthenticated && user?.role === "donor" && (
-                <a
-                  onClick={() => { setIsMenuOpen(false); navigate("/donor-dashboard"); }}
-                  className="text-gray-700 hover:text-red-500 py-2 font-medium cursor-pointer"
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate("/donor/bloodRequestsPage");
+                  }}
+                  className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
                 >
-                  Donor Dashboard
-                </a>
+                  Donate Now
+                </button>
               )}
 
-              <a href="#contact" className="text-gray-700 hover:text-red-500 py-2 font-medium">Contact</a>
-
+              {/* Auth buttons for mobile */}
               {!isAuthenticated ? (
                 <div className="flex flex-col space-y-2 pt-4">
                   <button
-                    onClick={() => { setIsMenuOpen(false); navigate("/login"); }}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate("/login");
+                    }}
                     className="border border-red-500 text-red-500 px-6 py-2 rounded-full hover:bg-red-50"
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={() => { setIsMenuOpen(false); navigate("/signup"); }}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate("/signup");
+                    }}
                     className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
                   >
                     Sign Up
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => { setIsMenuOpen(false); handleLogout(); }}
-                  className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
-                >
-                  Logout
-                </button>
+                <div className="flex flex-col space-y-2 pt-4">
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+                  >
+                    Logout
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate("/donor/profile");
+                    }}
+                    className="flex items-center justify-center space-x-2 bg-gray-100 py-2 rounded-full hover:bg-gray-200"
+                  >
+                    <User className="h-5 w-5 text-gray-800" />
+                    <span>Profile</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -229,3 +427,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
