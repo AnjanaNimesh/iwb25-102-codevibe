@@ -198,7 +198,7 @@ const AdminProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="text-gray-600">Loading profile...</p>
@@ -209,7 +209,7 @@ const AdminProfile: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
           <div className="flex items-center space-x-3 text-red-600 mb-4">
             <X className="h-6 w-6" />
@@ -228,7 +228,7 @@ const AdminProfile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Header */}
