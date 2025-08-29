@@ -129,8 +129,8 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a href="#home" className="text-gray-700 hover:text-red-500 font-medium">Home</a>
-            <a href="#about" className="text-gray-700 hover:text-red-500 font-medium">About</a>
+            <a href="/" className="text-gray-700 hover:text-red-500 font-medium">Home</a>
+            <a href="/about" className="text-gray-700 hover:text-red-500 font-medium">About</a>
 
             {/* Role-based link */}
             {isAuthenticated && user?.role === "donor" && (
@@ -183,8 +183,8 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="lg:hidden pb-4 border-t border-gray-200 mt-4">
             <div className="flex flex-col space-y-3 pt-4">
-              <a href="#home" className="text-gray-700 hover:text-red-500 py-2 font-medium">Home</a>
-              <a href="#about" className="text-gray-700 hover:text-red-500 py-2 font-medium">About</a>
+              <a href="/" className="text-gray-700 hover:text-red-500 py-2 font-medium">Home</a>
+              <a href="/about" className="text-gray-700 hover:text-red-500 py-2 font-medium">About</a>
 
               {isAuthenticated && user?.role === "donor" && (
                 <a
