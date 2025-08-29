@@ -742,7 +742,7 @@ const ViewBloodStock = () => {
             <button
               onClick={fetchBloodStocks}
               disabled={refreshing}
-              className="flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
