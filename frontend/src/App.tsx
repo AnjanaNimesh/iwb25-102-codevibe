@@ -258,7 +258,6 @@ import AddHospitalUsers from "./pages/admin/AddHospitalUsers";
 import ManageDonors from "./pages/admin/ManageDonors";
 import ManageHospitals from "./pages/admin/ManageHospitals";
 import ManageHospitalUsers from "./pages/admin/ManageHospitalUsers";
-import SystemNotifications from "./pages/admin/SystemNotifications";
 import ViewBloodStock from "./pages/admin/ViewBloodStock";
 
 // Hospital Pages
@@ -276,6 +275,7 @@ import { BloodDonationEligibilityForm } from "./pages/donor/BloodDonationEligibi
 import { BloodDonationEligibilityResult } from "./pages/donor/BloodDonationEligibilityResult";
 import HospitalProfilePage from "./pages/hospital/Profile";
 import Shared from "./layout/Shared";
+import AdminProfile from "./pages/admin/components/AdminProfile";
 
 function App() {
   return (
@@ -327,8 +327,8 @@ function App() {
             <Route path="manageHospitals" element={<ManageHospitals />} />
             <Route path="manageHosptitalUsers" element={<ManageHospitalUsers />} />
             <Route path="manageDonors" element={<ManageDonors />} />
-            <Route path="systemNotifications" element={<SystemNotifications />} />
             <Route path="viewBloodStock" element={<ViewBloodStock />} />
+            <Route path="adminprofile" element={<AdminProfile/>}/>
           </Route>
 
           {/* Hospital protected routes */}
