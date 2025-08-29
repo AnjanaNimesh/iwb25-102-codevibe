@@ -217,7 +217,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center space-x-3">
@@ -231,7 +231,7 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center justify-center space-x-8">
             <Link
               to={`${donorPrefix}/`}
               className="text-gray-700 hover:text-red-500 font-medium"
@@ -267,7 +267,7 @@ const Navbar = () => {
             {isAuthenticated && user?.role === "donor" && (
               <button
                 onClick={() => navigate("/donor/bloodRequestsPage")}
-                className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
+                className="border border-red-600 bg-white text-red-500 px-6 py-2 rounded-full hover:opacity-90 transition-all transform hover:scale-105 shadow-lg font-medium"
               >
                 Donate Now
               </button>
@@ -362,15 +362,27 @@ const Navbar = () => {
               </Link>
 
               {isAuthenticated && user?.role === "donor" && (
+                // <button
+                //   onClick={() => {
+                //     setIsMenuOpen(false);
+                //     navigate("/donor/bloodRequestsPage");
+                //   }}
+                //   className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-2 rounded-full hover:bg-red-600"
+                // >
+                //   Donate Now
+                // </button>
                 <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    navigate("/donor/bloodRequestsPage");
-                  }}
-                  className="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-600"
-                >
-                  Donate Now
-                </button>
+  onClick={() => {
+    setIsMenuOpen(false);
+    navigate("/donor/bloodRequestsPage");
+  }}
+  className="relative rounded-full p-[2px] bg-gradient-to-r from-red-600 to-pink-600"
+>
+  <span className="block rounded-full bg-white px-6 py-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-pink-600">
+    Donate Now
+  </span>
+</button>
+
               )}
 
               {/* Auth buttons for mobile */}
