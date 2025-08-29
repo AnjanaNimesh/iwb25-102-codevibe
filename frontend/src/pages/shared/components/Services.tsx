@@ -25,7 +25,7 @@ const ServicesSection = () => {
     {
       icon: <Shield className="h-8 w-8" />,
       title: "Security & Compliance",
-      description: "HIPAA-compliant platform with end-to-end encryption and comprehensive audit trails."
+      description: "A platform with end-to-end encryption and comprehensive audit trails."
     },
     {
       icon: <TrendingUp className="h-8 w-8" />,
