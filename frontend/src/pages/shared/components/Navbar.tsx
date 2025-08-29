@@ -129,7 +129,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a href="#home" className="text-gray-700 hover:text-red-500 font-medium">Home</a>
+            <a href="/" className="text-gray-700 hover:text-red-500 font-medium">Home</a>
             <a href="#about" className="text-gray-700 hover:text-red-500 font-medium">About</a>
 
             {/* Role-based link */}
