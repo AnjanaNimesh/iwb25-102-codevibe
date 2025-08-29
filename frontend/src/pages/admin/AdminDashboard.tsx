@@ -897,7 +897,6 @@ const AdminDashboard = () => {
   const fetchActiveDonorCount = () => fetchDataWithAuth(`${API_BASE}/activeDonorCount`, { totalActiveDonors: 1180 });
   const fetchDeactiveDonorCount = () => fetchDataWithAuth(`${API_BASE}/deactiveDonorCount`, { totalDeactiveDonors: 65 });
   const fetchActiveHospitalCount = () => fetchDataWithAuth(`${API_BASE}/activehospitalCount`, { totalActiveHospitals: 82 });
-  // Note: API bug, returns totalActiveHospitals for deactive hospital count - returning appropriate fallback
   const fetchDeactiveHospitalCount = () => fetchDataWithAuth(`${API_BASE}/deactivehospitalCount`, { totalActiveHospitals: 5 }); 
 
   const fetchBloodStock = () => fetchDataWithAuth(`${API_BASE}/totalBloodStock`, [
@@ -949,7 +948,7 @@ const AdminDashboard = () => {
         activeDonors: activeDonorRes.totalActiveDonors || 0,
         deactiveDonors: deactiveDonorRes.totalDeactiveDonors || 0,
         activeHospitals: activeHospitalRes.totalActiveHospitals || 0,
-        deactiveHospitals: deactiveHospitalRes.totalDeactiveHospitals || 0 // Note: API bug, returns totalActiveHospitals
+        deactiveHospitals: deactiveHospitalRes.totalDeactiveHospitals || 0 
       });
 
       // Process blood stock data with percentages

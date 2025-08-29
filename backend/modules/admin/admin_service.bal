@@ -1791,6 +1791,11 @@ import ballerina/regex as re;
 import ballerina/lang.array as arrays;
 import ballerina/time;
 
+type AdminSetupRequest record {|
+    string email;
+    string password;
+|};
+
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["http://localhost:5173"],
@@ -3350,6 +3355,50 @@ function isValidEmail(string email) returns boolean {
         }else{
             return {message: "Unable to retrieve request count."};
         }
+    }
+}
+
+//setup default admin
+public function setupDefaultAdmin() returns error? {
+    io:println("=== Setting up default admin user ===");
+   
+    string adminEmail = "admin@bloodlink.com";
+    string defaultPassword = "Admin@2024"; // Change this to your desired password
+   
+    // Check if admin already exists using query
+    sql:ParameterizedQuery checkQuery =
+        `SELECT admin_email FROM admin WHERE admin_email = ${adminEmail}`;
+    
+    stream<record {|string admin_email;|}, error?> adminStream = database:dbClient->query(checkQuery);
+    
+    // Check if any records exist
+    record {|record {|string admin_email;|} value;|}? streamResult = check adminStream.next();
+    check adminStream.close();
+    
+    record {|string admin_email;|}? existingAdmin = streamResult?.value;
+
+    if existingAdmin is record {|string admin_email;|} {
+        io:println("Admin user already exists: ", existingAdmin.admin_email);
+        return;
+    }
+   
+    // Hash the password
+    string hashedPassword = check crypto:hashBcrypt(defaultPassword, 12);
+   
+    // Insert the admin user
+    sql:ParameterizedQuery insertQuery =
+        `INSERT INTO admin (admin_email, password_hash, status)
+         VALUES (${adminEmail}, ${hashedPassword}, 'active')`;
+   
+    sql:ExecutionResult result = check database:dbClient->execute(insertQuery);
+   
+    if result.affectedRowCount > 0 {
+        io:println("✓ Default admin user created successfully");
+        io:println("  Email: ", adminEmail);
+        io:println("  Password: ", defaultPassword);
+        io:println("  ⚠️  IMPORTANT: Change this password after first login!");
+    } else {
+        return error("Failed to create admin user");
     }
 }
 

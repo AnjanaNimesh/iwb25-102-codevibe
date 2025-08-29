@@ -347,9 +347,8 @@ import {
 import { FaHospitalAlt, FaHospitalUser } from "react-icons/fa";
 import { RiHospitalFill } from "react-icons/ri";
 import { BiSolidDonateBlood } from "react-icons/bi";
-import { IoIosNotifications } from "react-icons/io";
 import { AiOutlineMenu, AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
-import { FaUserCircle } from "react-icons/fa";
+
 
 // Import the auth context
 import { useAuth } from "../contexts/AuthContext"; // Adjust path as needed
@@ -398,8 +397,7 @@ const AdminSidebar: React.FC = () => {
     { icon: <RiHospitalFill size={18} />, label: "Manage Hospitals", path: "/admin/manageHospitals" },
     { icon: <FaHospitalUser size={18} />, label: "Manage Hospital Users", path: "/admin/manageHosptitalUsers" },
     { icon: <BiSolidDonateBlood size={18} />, label: "Manage Donors", path: "/admin/manageDonors" },
-    { icon: <MdBloodtype size={18} />, label: "View Blood Stock", path: "/admin/viewBloodStock" },
-    { icon: <IoIosNotifications size={18} />, label: "System Notifications", path: "/admin/systemNotifications" },
+    { icon: <MdBloodtype size={18} />, label: "View Blood Stock", path: "/admin/viewBloodStock" }
   ];
 
   const footerItems: MenuItem[] = [
@@ -452,7 +450,7 @@ const AdminSidebar: React.FC = () => {
         </div>
 
         {/* User Info Section */}
-        {user && (
+        {/* {user && (
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <FaUserCircle size={32} className="text-gray-400" />
@@ -469,7 +467,7 @@ const AdminSidebar: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Menu Items */}
         <nav className="flex-grow py-2 space-y-1">
@@ -525,7 +523,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, path, active, onClick, .
       to={path}
       onClick={onClick}
       className={`flex items-center px-4 py-3 w-full text-left transition-colors duration-150 rounded-md ${
-        active ? "bg-red-500 text-white" : "text-gray-700 hover:bg-gray-100"
+        active ? "bg-gradient-to-r from-red-600 to-pink-600 text-white" : "text-gray-700 hover:bg-gray-100"
       }`}
       {...props}
     >

@@ -9,9 +9,10 @@ import ballerinax/mysql.driver as _;
 
 public function main() returns error? {
     check database:connectDatabase();
+    check admin:setupDefaultAdmin();
     check admin:startDashboardAdminService();
     check hospital:startHospitalService();
     check auth:startAuthService();
     check blood_requests:startBloodRequestsService();
-    check donors:startDonorsService();
+    check donors:startDonorsService();    
 }
