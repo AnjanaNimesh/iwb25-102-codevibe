@@ -247,6 +247,10 @@ BEGIN
         SET NEW.status_indicator = 'Critical';
     END IF;
 
+🔑 Default admin Credentials
+Email: admin@lifedrop.com
+Password: admin@2024
+
 ⚙️ Running the Project
 1. Backend Setup
 
