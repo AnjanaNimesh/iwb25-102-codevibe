@@ -274,6 +274,18 @@ HOST = "localhost"
 PORT = 3306
 DATABASE = "LifeDrop"
 
+[backend.hospital]
+smtpHost = "smtp.gmail.com"
+smtpPort = 587
+smtpUser = "your_email@gmail.com"
+smtpPassword = "your-actual-app-password"
+
+[backend.donors]
+smtpHost = "smtp.gmail.com"
+smtpPort = 587
+smtpUser = "your_email@gmail.com"
+smtpPassword = "your-actual-app-password"
+
 #Run backend
 bal run  
 ```
