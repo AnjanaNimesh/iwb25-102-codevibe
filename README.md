@@ -120,6 +120,7 @@ CREATE TABLE admin (
     password_hash VARCHAR(255) NOT NULL,
     status ENUM('active','inactive') DEFAULT 'active'
 );
+```
 
 ### 📊 Sample Dataset
 
@@ -248,6 +249,7 @@ BEGIN
     ELSE
         SET NEW.status_indicator = 'Critical';
     END IF;
+```
 
 ### 🔑 Default admin Credentials
 Email: admin@lifedrop.com
