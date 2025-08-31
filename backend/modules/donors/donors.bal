@@ -612,7 +612,7 @@ resource function get districts() returns District[]|http:Response|error {
 
         float|error latitude = float:fromString(latStr);
         float|error longitude = float:fromString(lonStr);
-        float radius = radStr is () ? 20.0 : check float:fromString(radStr);
+        float radius = radStr is () ? 300.0 : check float:fromString(radStr);
 
         if latitude is error || longitude is error {
             return error("Invalid query parameters: latitude and longitude must be valid numbers");

@@ -1497,7 +1497,7 @@ export const BloodDonationEligibilityResult: React.FC = () => {
                     params: {
                       latitude,
                       longitude,
-                      radius: 20,
+                      radius: 300,
                     },
                     withCredentials: true,
                   }
@@ -1514,7 +1514,7 @@ export const BloodDonationEligibilityResult: React.FC = () => {
               const pendingIds = pendingResponse.data.map((d: any) => d.hospital_id);
               setPendingHospitals(pendingIds);
               if (centersResponse.data.length === 0) {
-                setLocationError("No donation centers found within 20 km.");
+                setLocationError("No donation centers.");
               }
             } catch (err: any) {
               let errorMessage = "Failed to fetch donation centers or pending requests.";
@@ -1673,7 +1673,7 @@ export const BloodDonationEligibilityResult: React.FC = () => {
                   Find <span className="text-red-500">Donation Centers</span>
                 </h2>
                 <p className="text-gray-600">
-                  Locate nearby blood donation centers within 20 km of your location
+                  Locate nearby blood donation centers
                 </p>
               </div>
 
@@ -1766,7 +1766,7 @@ export const BloodDonationEligibilityResult: React.FC = () => {
                   </svg>
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">No Centers Found</h3>
                   <p className="text-yellow-700">
-                    No donation centers found within 20 km. Please try checking with a local blood bank or expanding your search radius.
+                    No donation centers found. Please try checking with a local blood bank or expanding your search radius.
                   </p>
                 </div>
               )}
