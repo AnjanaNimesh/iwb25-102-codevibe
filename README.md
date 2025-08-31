@@ -121,7 +121,7 @@ CREATE TABLE admin (
     status ENUM('active','inactive') DEFAULT 'active'
 );
 
-Sample Dataset
+📊 Sample Dataset
 
 -- =========================
 -- Insert Districts (25)
@@ -254,7 +254,6 @@ Password: admin@2024
 
 ⚙️ Running the Project
 1. Backend Setup
-
 # Navigate to backend
 cd backend
 
@@ -270,7 +269,7 @@ PORT = 3306
 DATABASE = "LifeDrop"
 
 # Run backend
-bal run 
+bal run  
 
 2. Frontend Setup
 # Navigate to frontend
