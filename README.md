@@ -258,31 +258,45 @@ Password: admin@2024
 
 ### ⚙️ Running the Project
 # 1. Backend Setup
+
 **Navigate to backend**
+
 cd backend
 
 **Install dependencies**
+
 npm install
 
 **Configure environment variables (Config.toml)**
+
 [backend.database]
+
 USER = "your_username"
+
 PASSWORD = "your_password"
+
 HOST = "localhost"
+
 PORT = 3306
+
 DATABASE = "LifeDrop"
 
 **Run backend**
+
 bal run  
 
 # 2. Frontend Setup
+
 **Navigate to frontend**
+
 cd frontend
 
 **Install dependencies**
+
 npm install
 
 **Run frontend**
+
 npm run dev
 
 ### 🌟 Features Recap
