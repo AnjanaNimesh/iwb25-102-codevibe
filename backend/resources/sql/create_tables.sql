@@ -58,6 +58,7 @@ CREATE TABLE blood_group (
 
 DELIMITER $$
 
+-- Trigger to set status_indicator before insert
 CREATE TRIGGER blood_group_status_before_insert
 BEFORE INSERT ON blood_group
 FOR EACH ROW
@@ -71,12 +72,21 @@ BEGIN
     ELSE
         SET NEW.status_indicator = 'Critical';
     END IF;
+
+    -- Also set last_modified to current timestamp on insert
+    SET NEW.last_modified = CURRENT_TIMESTAMP;
 END$$
 
+-- Trigger to set status_indicator before update
 CREATE TRIGGER blood_group_status_before_update
 BEFORE UPDATE ON blood_group
 FOR EACH ROW
 BEGIN
+    DECLARE old_status VARCHAR(10);
+
+    SET old_status = OLD.status_indicator;
+
+    -- Update status_indicator based on quantity
     IF NEW.quantity >= 50 THEN
         SET NEW.status_indicator = 'Good';
     ELSEIF NEW.quantity >= 20 THEN
@@ -86,9 +96,15 @@ BEGIN
     ELSE
         SET NEW.status_indicator = 'Critical';
     END IF;
+
+    -- Update last_modified only if status_indicator changed
+    IF NEW.status_indicator != old_status THEN
+        SET NEW.last_modified = CURRENT_TIMESTAMP;
+    END IF;
 END$$
 
 DELIMITER ;
+
 
 -- blood_request table
 CREATE TABLE blood_request (
