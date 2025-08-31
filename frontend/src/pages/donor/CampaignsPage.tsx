@@ -118,7 +118,7 @@ const CampaignsPage = () => {
           </div>
         )}
 
-        <div className="text-center">
+        {/* <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Start Your Own Campaign
           </h2>
@@ -132,7 +132,7 @@ const CampaignsPage = () => {
           >
             Get in Touch
           </a>
-        </div>
+        </div> */}
       </div>
     </div>
   );

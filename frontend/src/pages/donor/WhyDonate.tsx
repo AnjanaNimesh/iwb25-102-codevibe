@@ -65,15 +65,6 @@ const WhyDonate = () => {
             <li>Mothers and babies during childbirth complications</li>
           </ul>
         </div>
-
-        <div className="text-center mt-12">
-          <a
-            href="/signup"
-            className="inline-block bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 text-lg font-medium"
-          >
-            Become a Donor Today
-          </a>
-        </div>
       </div>
     </div>
   );

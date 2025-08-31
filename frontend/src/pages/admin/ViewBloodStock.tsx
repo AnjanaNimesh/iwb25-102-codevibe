@@ -39,12 +39,12 @@ const ViewBloodStock = () => {
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-  // Utility function to get token from cookies (copied from your working HospitalUserManagement)
+  // Utility function to get token from cookies
   const getTokenFromCookie = (): string | null => {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
-      // Look for any common token names or the specific 'adminToken'
+      
       if (name === 'adminToken' || name === 'token' || name === 'authToken' || name === 'admin_token') {
         const decodedValue = decodeURIComponent(value);
         console.log(`Found token in cookie '${name}':`, decodedValue.substring(0, 20) + '...');
@@ -58,7 +58,7 @@ const ViewBloodStock = () => {
 
   // Utility function to create authenticated headers
   const getAuthHeaders = (): HeadersInit => {
-    const token = getTokenFromCookie(); // Now using the cookie retrieval logic
+    const token = getTokenFromCookie(); 
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -66,7 +66,7 @@ const ViewBloodStock = () => {
     if (token) {
       // Use the Authorization Bearer token header, which is standard
       headers['Authorization'] = `Bearer ${token}`;
-      // You can keep these if your backend specifically checks them, but 'Authorization' is usually sufficient
+
       headers['X-Admin-Token'] = token;
       headers['Admin-Token'] = token;
       headers['X-Auth-Token'] = token;
@@ -104,7 +104,7 @@ const ViewBloodStock = () => {
     try {
       const response = await fetch(`${baseApiUrl}/districts`, {
         headers: getAuthHeaders(),
-        credentials: 'include', // Crucial: ensures cookies are sent with cross-origin requests
+        credentials: 'include', 
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

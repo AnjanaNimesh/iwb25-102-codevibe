@@ -67,22 +67,6 @@ const GetInvolved = () => {
             </a>
           </div>
         </div>
-
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            How You Can Make a Difference
-          </h2>
-          <p className="text-gray-600 max-w-3xl mx-auto mb-8">
-            Every action counts. By getting involved, you’re helping ensure a
-            stable blood supply for those in need. Join us today!
-          </p>
-          <a
-            href="/signup"
-            className="inline-block bg-red-500 text-white px-8 py-3 rounded-full hover:bg-red-600 text-lg font-medium"
-          >
-            Get Started
-          </a>
-        </div>
       </div>
     </div>
   );

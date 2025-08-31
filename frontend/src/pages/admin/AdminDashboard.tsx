@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -82,7 +81,7 @@ const AdminDashboard = () => {
     '#FF7675', '#FDCB6E', '#A29BFE', '#81ECEC'
   ];
 
-  // Utility function to get token from cookies (copied from your working components)
+  // Utility function to get token from cookies 
   const getTokenFromCookie = (): string | null => {
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
@@ -292,18 +291,12 @@ const AdminDashboard = () => {
     }
   ];
 
-  const StatCard = ({ title, value, icon: Icon, color, trend, trendValue }) => (
+  const StatCard = ({ title, value, icon: Icon, color }) => (
     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border-l-4 transform hover:-translate-y-1" style={{ borderLeftColor: color }}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
           <p className="text-3xl font-bold text-gray-900">{value?.toLocaleString()}</p>
-          {trend && (
-            <div className={`flex items-center mt-2 text-sm ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-              <TrendingUp className="w-4 h-4 mr-1" />
-              <span>{trendValue}% vs last month</span>
-            </div>
-          )}
         </div>
         <div className="p-3 rounded-full transform transition-transform hover:scale-110" style={{ backgroundColor: color + '20' }}>
           <Icon className="w-8 h-8" style={{ color }} />
@@ -401,32 +394,24 @@ const AdminDashboard = () => {
             value={dashboardData.totalDonors}
             icon={Users}
             color="#8B5CF6"
-            trend="up"
-            trendValue="12"
           />
           <StatCard
             title="Total Hospitals"
             value={dashboardData.totalHospitals}
             icon={Building2}
             color="#06B6D4"
-            trend="up"
-            trendValue="5"
           />
           <StatCard
             title="Total Donations"
             value={dashboardData.totalDonations}
             icon={Droplet}
             color="#EF4444"
-            trend="up"
-            trendValue="23"
           />
           <StatCard
             title="Blood Requests"
             value={dashboardData.totalRequests}
             icon={ClipboardList}
             color="#F59E0B"
-            trend="down"
-            trendValue="8"
           />
         </div>
 
@@ -499,44 +484,6 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
-
-          {/* District-wise Donors Bar Chart */}
-          {/* <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <MapPin className="w-5 h-5 text-blue-600 mr-2" />
-              Donors by District
-            </h3>
-            {districtDonorData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={districtDonorData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="districtName" 
-                    angle={-45}
-                    textAnchor="end"
-                    height={100}
-                    fontSize={12}
-                    tick={{ fill: '#6b7280' }}
-                  />
-                  <YAxis tick={{ fill: '#6b7280' }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar 
-                    dataKey="totalDonors" 
-                    radius={[6, 6, 0, 0]}
-                    animationDuration={1000}
-                  >
-                    {districtDonorData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={districtColors[index % districtColors.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                <p>No district donor data available</p>
-              </div>
-            )}
-          </div> */}
           <div>
             { <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 mb-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -631,95 +578,6 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
-          {/* Donor Status with Emerald/Coral theme */}
-          {/* <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <UserCheck className="w-5 h-5 text-emerald-600 mr-2" />
-              Donor Status Overview
-            </h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-emerald-600">{dashboardData.activeDonors}</p>
-                <p className="text-sm text-gray-600">Active Donors</p>
-                <p className="text-xs text-emerald-500 mt-1">
-                  {donorStatusData[0]?.percentage}% of total
-                </p>
-              </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg border border-red-100">
-                <XCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-red-500">{dashboardData.deactiveDonors}</p>
-                <p className="text-sm text-gray-600">Inactive Donors</p>
-                <p className="text-xs text-red-400 mt-1">
-                  {donorStatusData[1]?.percentage}% of total
-                </p>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={donorStatusData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={70}
-                  dataKey="value"
-                  nameKey="name"
-                  animationBegin={0}
-                  animationDuration={1000}
-                >
-                  {donorStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<StatusTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div> */}
-
-          {/* Hospital Status with Blue/Orange theme */}
-          {/* <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <Building className="w-5 h-5 text-blue-600 mr-2" />
-              Hospital Status Overview
-            </h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <Building2 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-blue-600">{dashboardData.activeHospitals}</p>
-                <p className="text-sm text-gray-600">Active Hospitals</p>
-                <p className="text-xs text-blue-500 mt-1">
-                  {hospitalStatusData[0]?.percentage}% of total
-                </p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-100">
-                <AlertCircle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-orange-500">{dashboardData.deactiveHospitals}</p>
-                <p className="text-sm text-gray-600">Inactive Hospitals</p>
-                <p className="text-xs text-orange-400 mt-1">
-                  {hospitalStatusData[1]?.percentage}% of total
-                </p>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={hospitalStatusData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={70}
-                  dataKey="value"
-                  nameKey="name"
-                  animationBegin={0}
-                  animationDuration={1000}
-                >
-                  {hospitalStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<StatusTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div> */}
         </div>
 
         {/* District Hospitals Chart */}
@@ -761,3 +619,6 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+
+
