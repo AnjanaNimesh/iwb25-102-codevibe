@@ -253,6 +253,7 @@ BEGIN
 
 ### 🔑 Default admin Credentials
 Email: admin@lifedrop.com
+
 Password: admin@2024
 
 ### ⚙️ Running the Project
@@ -284,7 +285,7 @@ npm install
 # Run frontend
 npm run dev
 
-##🌟 Features Recap
+### 🌟 Features Recap
 
 ✅ Admins register hospitals
 
