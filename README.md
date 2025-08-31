@@ -254,7 +254,7 @@ BEGIN
 ### 🔑 Default admin Credentials
 Email: admin@lifedrop.com
 
-Password: admin@2024
+Password: Admin@2024
 
 ### ⚙️ Running the Project
 # 1. Backend Setup
