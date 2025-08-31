@@ -13,3 +13,4 @@ export { default as ModalWrapper } from './ModalWrapper';
 export { default as FilterBar } from './FilterBar';
 export { default as ActionButton } from './ActionButton';
 export { default as EmptyState } from './EmptyState';
+export { default as NotificationModals} from './NotificationModals';
