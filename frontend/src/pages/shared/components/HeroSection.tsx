@@ -222,7 +222,7 @@ const HeroSection = () => {
           {/* Right Image */}
           <div className="relative">
             <img
-              src="" 
+              src="https://media.istockphoto.com/id/1033906526/vector/donate-blood-concept-with-blood-bag-and-heart-blood-donation-vector-illustration-world-blood.jpg?s=612x612&w=0&k=20&c=bCDDE6DiGdlFspMA1RKRNeLBUWugSmi8U73ZCfYSbpg=" 
               alt="Blood Donation"
               className="rounded-3xl shadow-2xl w-full object-cover"
             />
