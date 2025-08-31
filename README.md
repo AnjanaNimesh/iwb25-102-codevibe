@@ -121,8 +121,9 @@ CREATE TABLE admin (
     status ENUM('active','inactive') DEFAULT 'active'
 );
 
-📊 Sample Dataset
+### 📊 Sample Dataset
 
+```sql
 -- =========================
 -- Insert Districts (25)
 -- =========================
@@ -248,12 +249,12 @@ BEGIN
         SET NEW.status_indicator = 'Critical';
     END IF;
 
-🔑 Default admin Credentials
+### 🔑 Default admin Credentials
 Email: admin@lifedrop.com
 Password: admin@2024
 
-⚙️ Running the Project
-1. Backend Setup
+### ⚙️ Running the Project
+**1. Backend Setup**
 # Navigate to backend
 cd backend
 
@@ -271,7 +272,7 @@ DATABASE = "LifeDrop"
 # Run backend
 bal run  
 
-2. Frontend Setup
+**2. Frontend Setup**
 # Navigate to frontend
 cd frontend
 
@@ -281,7 +282,7 @@ npm install
 # Run frontend
 npm run dev
 
-🌟 Features Recap
+##🌟 Features Recap
 
 ✅ Admins register hospitals
 
