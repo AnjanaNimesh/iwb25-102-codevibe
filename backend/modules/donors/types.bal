@@ -72,3 +72,27 @@ type DonorSignupResponse record {
     string message;
     int? donor_id?;
 };
+
+
+
+public type BloodCampaign record {|
+    int campaign_id;
+    int hospital_id;
+    string hospital_name;
+    string title;
+    string location;
+    string date;
+    string status;
+    byte[]? image;
+|};
+
+public type BloodCampaignResponse record {|
+    int campaign_id;
+    int hospital_id;
+    string hospital_name;
+    string title;
+    string location;
+    string date;
+    string status;
+    string? image;
+|};
