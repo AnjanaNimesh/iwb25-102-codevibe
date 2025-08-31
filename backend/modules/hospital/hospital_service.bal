@@ -1313,16 +1313,25 @@ service /hospital on database:hospitalListener {
         }
         UserPayload userData = userResult;
 
-        stream<HospitalProfile, sql:Error?> resultStream = database:dbClient->query(`
-            SELECT hu.hospital_email as email, h.hospital_name as full_name, 
-                   hu.hospital_id, 'hospital_user' as role, hu.status,
-                   h.hospital_type, h.hospital_address, h.contact_number, 
-                   h.district_id, h.latitude, h.longitude
-            FROM hospital_user hu
-            INNER JOIN hospital h ON hu.hospital_id = h.hospital_id
-            WHERE hu.hospital_email = ${userData.email} AND hu.status = 'active'
-        `);
+        // stream<HospitalProfile, sql:Error?> resultStream = database:dbClient->query(`
+        //     SELECT hu.hospital_email as email, h.hospital_name as full_name, 
+        //            hu.hospital_id, 'hospital_user' as role, hu.status,
+        //            h.hospital_type, h.hospital_address, h.contact_number, 
+        //            h.district_id, h.latitude, h.longitude
+        //     FROM hospital_user hu
+        //     INNER JOIN hospital h ON hu.hospital_id = h.hospital_id
+        //     WHERE hu.hospital_email = ${userData.email} AND hu.status = 'active'
+        // `);
 
+stream<HospitalProfile, sql:Error?> resultStream = database:dbClient->query(`
+    SELECT hu.hospital_email as email, h.hospital_name as full_name, 
+           hu.hospital_id, 'hospital_user' as role, hu.status,
+           h.hospital_type, h.hospital_address, h.contact_number, 
+           h.district_id, h.latitude, h.longitude
+    FROM hospital_user hu
+    INNER JOIN hospital h ON hu.hospital_id = h.hospital_id
+    WHERE hu.hospital_email = ${userData.email} AND hu.status = 'active'
+`);
         HospitalProfile[] profiles = [];
         check resultStream.forEach(function(HospitalProfile row) {
             profiles.push(row);
@@ -1366,8 +1375,8 @@ service /hospital on database:hospitalListener {
             string? hospital_address; 
             string? contact_number; 
             int district_id; 
-            decimal latitude; 
-            decimal longitude; 
+    decimal? latitude;    // Changed to nullable
+    decimal? longitude;   // Changed to nullable
         |}? currentHospital = check database:dbClient->queryRow(`
             SELECT hospital_name, hospital_type, hospital_address, contact_number, 
                    district_id, latitude, longitude
@@ -1385,8 +1394,8 @@ service /hospital on database:hospitalListener {
         string? hospital_address = updateData.hospital_address ?: currentHospital.hospital_address;
         string? contact_number = updateData.contact_number ?: currentHospital.contact_number;
         int district_id = updateData.district_id ?: currentHospital.district_id;
-        decimal latitude = updateData.latitude ?: currentHospital.latitude;
-        decimal longitude = updateData.longitude ?: currentHospital.longitude;
+        decimal? latitude = updateData.latitude ?: currentHospital.latitude;
+        decimal? longitude = updateData.longitude ?: currentHospital.longitude;
 
         sql:ExecutionResult result = check database:dbClient->execute(`
             UPDATE hospital

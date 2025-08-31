@@ -118,8 +118,8 @@ type HospitalProfile record {|
     string? hospital_address;
     string? contact_number;
     int district_id;
-    decimal latitude;
-    decimal longitude;
+    decimal? latitude;    // Changed from decimal to decimal? (optional)
+    decimal? longitude;   // Changed from decimal to decimal? (optional)
 |};
 
 type HospitalUpdate record {|

@@ -1,24 +1,4 @@
-// import { HeroSlider } from "./components/HeroSlider";
-// import { StatsSection } from "./components/StatsSection";
-// import { WhyDonateSection } from "./components/WhyDonateSection";
-// import { GetInvolvedSection } from "./components/GetInvolvedSection";
-// // import { CampaignsSection } from "./components/CampaignsSection";
-// import { ContactSection } from "./components/ContactSection";
 
-// const DonorDashboard = () => {
-//   return (
-//     <>
-//       <HeroSlider />
-//       <StatsSection />
-//       <WhyDonateSection />
-//       <GetInvolvedSection />
-//       {/* <CampaignsSection /> */}
-//       <ContactSection />
-//     </>
-//   );
-// };
-
-// export default DonorDashboard;
 
 import { HeroSlider } from "./components/HeroSlider";
 import { StatsSection } from "./components/StatsSection";
