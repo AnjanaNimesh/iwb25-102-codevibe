@@ -1,22 +1,23 @@
-Life Drop – Blood Donation Platform
-🚀 Project Overview
+# 🩸 Life Drop – Blood Donation Platform  
 
-Life Drop is a platform that connects hospitals, donors, and admins to ensure timely blood donation and availability.
+## 🚀 Project Overview  
+**Life Drop** is a platform that connects hospitals, donors, and admins to ensure timely blood donation and availability.  
 
-Admins: Register hospitals.
+- **Admins**: Register hospitals  
+- **Hospitals**: Post urgent blood requests & organize blood donation campaigns  
+- **Donors**: Receive requests based on their blood group, complete an eligibility check, and find nearby hospitals to donate  
 
-Hospitals: Post urgent blood requests & organize blood donation campaigns.
+This system ensures a **faster, smarter, and community-driven approach to saving lives.**  
 
-Donors: Receive requests based on their blood group, complete an eligibility check, and find nearby hospitals to donate.
+---
 
-The system ensures a faster, smarter, and community-driven approach to saving lives.
+## 🗄️ Database Setup  
 
-🗄️ Database Setup
-Database Configuration (MySQL)
-
+### Database Configuration (MySQL)  
+```sql
 CREATE DATABASE LifeDrop;
-
 USE LifeDrop;
+
 
 -- district table
 CREATE TABLE district (
