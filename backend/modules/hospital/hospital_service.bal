@@ -13,16 +13,33 @@ import ballerina/regex as re;
 import ballerina/lang.array as arrays;
 import ballerina/crypto;
 
-// Gmail SMTP configuration
+// // Gmail SMTP configuration
+// email:SmtpConfiguration smtpConfig = {
+//     port: 587,
+//     security: email:START_TLS_AUTO
+// };
+
+// email:SmtpClient smtpClient = check new (
+//     "smtp.gmail.com",
+//     "anjana.n.sathsara123@gmail.com",  // Replace with your Gmail address
+//     "your-app-password",  // Replace with your Gmail App Password
+//     smtpConfig
+// );
+
+configurable string smtpHost = ?;
+configurable int smtpPort = ?;
+configurable string smtpUser = ?;
+configurable string smtpPassword = ?;
+
 email:SmtpConfiguration smtpConfig = {
-    port: 587,
+    port: smtpPort,
     security: email:START_TLS_AUTO
 };
 
 email:SmtpClient smtpClient = check new (
-    "smtp.gmail.com",
-    "anjana.n.sathsara123@gmail.com",  // Replace with your Gmail address
-    "your-app-password",  // Replace with your Gmail App Password
+    smtpHost,
+    smtpUser,
+    smtpPassword,
     smtpConfig
 );
 
