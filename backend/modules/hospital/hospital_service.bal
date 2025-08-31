@@ -26,6 +26,25 @@ import ballerina/crypto;
 //     smtpConfig
 // );
 
+// configurable string smtpHost = ?;
+// configurable int smtpPort = ?;
+// configurable string smtpUser = ?;
+// configurable string smtpPassword = ?;
+
+// email:SmtpConfiguration smtpConfig = {
+//     port: smtpPort,
+//     security: email:START_TLS_AUTO
+// };
+
+// email:SmtpClient smtpClient = check new (
+//     smtpHost,
+//     smtpUser,
+//     smtpPassword,
+//     smtpConfig
+// );
+
+
+// In donors.bal
 configurable string smtpHost = ?;
 configurable int smtpPort = ?;
 configurable string smtpUser = ?;
