@@ -18,6 +18,69 @@ import ballerina/crypto;
 
 service /donors on new http:Listener(9095) {
 
+
+    //get all campaigns
+resource function get campaigns() returns http:Response|error {
+    http:Response response = new;
+
+    sql:ParameterizedQuery query = `SELECT bc.campaign_id, bc.hospital_id, h.hospital_name,
+                                          bc.title, bc.location, bc.date, bc.status,
+                                          bc.image
+                                   FROM blood_campaign bc
+                                   JOIN hospital h ON bc.hospital_id = h.hospital_id
+                                   WHERE bc.status = 'active'
+                                   ORDER BY bc.date DESC`;
+
+    stream<BloodCampaign, sql:Error?> campaignStream = database:dbClient->query(query);
+    
+    BloodCampaignResponse[] campaigns = [];
+    error? streamError = campaignStream.forEach(function(BloodCampaign campaign) {
+        string? imageBase64 = campaign.image is byte[] ? arrays:toBase64(campaign.image ?: []) : null;
+        
+        BloodCampaignResponse responseCampaign = {
+            campaign_id: campaign.campaign_id,
+            hospital_id: campaign.hospital_id,
+            hospital_name: campaign.hospital_name,
+            title: campaign.title,
+            location: campaign.location,
+            date: campaign.date,
+            status: campaign.status,
+            image: imageBase64
+        };
+        campaigns.push(responseCampaign);
+    });
+
+    error? closeError = campaignStream.close();
+    if closeError is error {
+        io:println("Error closing campaign stream: ", closeError.message());
+        response.setJsonPayload({
+            status: "error",
+            message: "Failed to close database stream"
+        });
+        response.statusCode = 500;
+        return response;
+    }
+
+    if streamError is error {
+        io:println("Error processing campaign stream: ", streamError.message());
+        response.setJsonPayload({
+            status: "error",
+            message: "Failed to fetch campaigns: " + streamError.message()
+        });
+        response.statusCode = 500;
+        return response;
+    }
+
+    io:println("Fetched ", campaigns.length(), " active campaigns");
+
+    response.setJsonPayload({
+        status: "success",
+        campaigns: campaigns
+    });
+    response.statusCode = 200;
+    return response;
+}
+
     // Districts endpoint for signup form
 resource function get districts() returns District[]|http:Response|error {
     http:Response response = new;
