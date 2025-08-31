@@ -257,14 +257,14 @@ Email: admin@lifedrop.com
 Password: admin@2024
 
 ### ⚙️ Running the Project
-**1. Backend Setup**
-# Navigate to backend
+# 1. Backend Setup
+**Navigate to backend**
 cd backend
 
-# Install dependencies
+**Install dependencies**
 npm install
 
-# Configure environment variables (Config.toml)
+**Configure environment variables (Config.toml)**
 [backend.database]
 USER = "your_username"
 PASSWORD = "your_password"
@@ -272,27 +272,27 @@ HOST = "localhost"
 PORT = 3306
 DATABASE = "LifeDrop"
 
-# Run backend
+**Run backend**
 bal run  
 
-**2. Frontend Setup**
-# Navigate to frontend
+# 2. Frontend Setup
+**Navigate to frontend**
 cd frontend
 
-# Install dependencies
+**Install dependencies**
 npm install
 
-# Run frontend
+**Run frontend**
 npm run dev
 
 ### 🌟 Features Recap
 
-✅ Admins register hospitals
+**✅ Admins register hospitals**
 
-✅ Hospitals create blood requests & campaigns
+**✅ Hospitals create blood requests & campaigns**
 
-✅ Donors get matched by blood group & location
+**✅ Donors get matched by blood group & location**
 
-✅ Donors complete eligibility checks before donating
+**✅ Donors complete eligibility checks before donating**
 
-✅ Nearby hospitals are suggested automatically
+**✅ Nearby hospitals are suggested automatically**
