@@ -1,2 +1,2 @@
-create database BloodLink
-use BloodLink
+create database lifedrop
+use lifedrop

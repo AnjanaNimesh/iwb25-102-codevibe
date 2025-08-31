@@ -6,7 +6,7 @@ const UserTypesSection = () => {
       icon: <Users className="h-12 w-12" />,
       title: "Blood Donors",
       description: "Register as a donor, schedule appointments, track donation history, and receive notifications for urgent blood needs.",
-      features: ["Easy registration", "Appointment booking", "Donation history", "Health tracking", "Rewards program"],
+      features: ["Easy registration", "Donation history", "Health tracking", "Rewards program"],
       bgColor: "bg-red-50",
       iconColor: "text-red-500",
       //buttonText: "Register as Donor"
@@ -15,7 +15,7 @@ const UserTypesSection = () => {
       icon: <Building2 className="h-12 w-12" />,
       title: "Hospitals",
       description: "Request blood units, manage inventory, track patient needs, and connect with verified donors efficiently.",
-      features: ["Blood requests", "Inventory management", "Patient tracking", "Emergency requests", "Compliance reports"],
+      features: ["Blood requests", "Inventory management", "Request tracking", "Emergency requests"],
       bgColor: "bg-blue-50",
       iconColor: "text-blue-500",
       //buttonText: "Hospital Portal"
@@ -24,7 +24,7 @@ const UserTypesSection = () => {
       icon: <Shield className="h-12 w-12" />,
       title: "System Admin",
       description: "Oversee platform operations, manage users, monitor compliance, and generate comprehensive analytics.",
-      features: ["User management", "System monitoring", "Analytics dashboard", "Compliance oversight", "Report generation"],
+      features: ["User management", "System monitoring", "Analytics dashboard", "Compliance oversight"],
       bgColor: "bg-green-50",
       iconColor: "text-green-500",
       //buttonText: "Admin Access"
@@ -62,14 +62,6 @@ const UserTypesSection = () => {
                   </div>
                 ))}
               </div>
-              
-              {/* <button className={`w-full py-3 px-6 rounded-full font-medium transition-all ${
-                index === 0 ? 'bg-red-500 text-white hover:bg-red-600' :
-                index === 1 ? 'bg-blue-500 text-white hover:bg-blue-600' :
-                'bg-green-500 text-white hover:bg-green-600'
-              }`}>
-                {type.buttonText}
-              </button> */}
             </div>
           ))}
         </div>

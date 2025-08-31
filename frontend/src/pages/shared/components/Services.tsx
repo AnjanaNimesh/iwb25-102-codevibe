@@ -5,32 +5,32 @@ const ServicesSection = () => {
     {
       icon: <UserPlus className="h-8 w-8" />,
       title: "Donor Management",
-      description: "Complete donor lifecycle management with health screening, eligibility tracking, and automated notifications."
+      description: "Complete donor lifecycle management with health screening and eligibility tracking."
     },
     {
       icon: <Calendar className="h-8 w-8" />,
-      title: "Smart Scheduling",
-      description: "AI-powered appointment scheduling that optimizes donor availability and hospital needs."
+      title: "Matching Requests",
+      description: "View blood requests that match the donor’s blood group for faster response."
     },
     {
       icon: <Activity className="h-8 w-8" />,
       title: "Real-time Inventory",
-      description: "Live blood inventory tracking with automated alerts for critical shortages and expiry management."
+      description: "View live blood inventory stocks in real time."
     },
     {
       icon: <MapPin className="h-8 w-8" />,
       title: "Location Services",
-      description: "Find nearby donation centers, mobile camps, and hospitals with integrated mapping services."
+      description: "Find nearby donation centers and hospitals with integrated mapping services."
     },
     {
       icon: <Shield className="h-8 w-8" />,
       title: "Security & Compliance",
-      description: "A platform with end-to-end encryption and comprehensive audit trails."
+      description: "End-to-end encryption with detailed audit trails to keep data secure."
     },
     {
       icon: <TrendingUp className="h-8 w-8" />,
       title: "Analytics & Reports",
-      description: "Comprehensive analytics dashboard with custom reports and predictive insights."
+      description: "Comprehensive analytics dashboard with custom reports."
     }
   ];
 
@@ -42,7 +42,7 @@ const ServicesSection = () => {
             Our Comprehensive Services
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            BloodLink provides end-to-end blood donation management services with cutting-edge 
+            LifeDrop provides end-to-end blood donation management services with cutting-edge 
             technology and user-friendly interfaces.
           </p>
         </div>
